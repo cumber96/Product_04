@@ -1,0 +1,15 @@
+.steps-display {
+  text-align: center;
+}
+
+.steps-display__title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+}
+
+.steps-display__value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0;
+}
