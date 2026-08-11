@@ -2,9 +2,9 @@ import { HomePage } from './pages/HomePage';
 import { StepsPocPage } from './pages/StepsPocPage';
 
 function App() {
-  const path = window.location.pathname;
+  const params = new URLSearchParams(window.location.search);
 
-  if (path === '/steps-poc' || path === '/steps-poc/') {
+  if (params.get('poc') === 'steps') {
     return <StepsPocPage />;
   }
 
