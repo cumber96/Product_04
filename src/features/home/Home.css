@@ -1,0 +1,79 @@
+.home {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.home-summary {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.home-summary__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+
+.home-summary__count {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.home__groups {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.benefit-app-section__title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+
+.benefit-app-section__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.benefit-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border, #e5e4e7);
+  border-radius: 0.5rem;
+}
+
+.benefit-item__name {
+  font-size: 0.95rem;
+}
+
+.benefit-item__status {
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.benefit-item--available .benefit-item__status {
+  color: #1a7f37;
+}
+
+.benefit-item--locked {
+  opacity: 0.55;
+}
+
+.benefit-item--locked .benefit-item__status {
+  color: inherit;
+}
+
+.benefit-item--completed .benefit-item__status {
+  color: #6b6375;
+}

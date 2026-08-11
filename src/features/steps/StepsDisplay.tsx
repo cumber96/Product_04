@@ -1,8 +1,8 @@
-import { useStepsFromQuery } from './useStepsFromQuery';
+import { useStepsQueryParam } from '../../platform/web/steps/useStepsQueryParam';
 import './StepsDisplay.css';
 
 export function StepsDisplay() {
-  const steps = useStepsFromQuery();
+  const steps = useStepsQueryParam();
 
   return (
     <section className="steps-display">

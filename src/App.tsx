@@ -1,11 +1,14 @@
-import { StepsDisplay } from './features/steps/StepsDisplay';
+import { HomePage } from './pages/HomePage';
+import { StepsPocPage } from './pages/StepsPocPage';
 
 function App() {
-  return (
-    <main className="app">
-      <StepsDisplay />
-    </main>
-  );
+  const path = window.location.pathname;
+
+  if (path === '/steps-poc' || path === '/steps-poc/') {
+    return <StepsPocPage />;
+  }
+
+  return <HomePage />;
 }
 
 export default App;
