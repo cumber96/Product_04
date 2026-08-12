@@ -1,6 +1,9 @@
 import { BENEFIT_APPS, BENEFITS } from '../../domain/benefits/catalog';
 import { getVisibleBenefitGroups } from '../../domain/benefits/benefitStatusStore';
-import { getConfirmationCandidateBenefitIds } from '../../domain/benefits/eligibleToday';
+import {
+  getConfirmationCandidateBenefitIds,
+  getCompletedTodayBenefitIds,
+} from '../../domain/benefits/eligibleToday';
 import { Confirmation } from '../confirmation/Confirmation';
 import { useBenefitStatuses } from './useBenefitStatuses';
 import { useAppLaunch } from './useAppLaunch';
@@ -23,6 +26,13 @@ export function Home() {
     eligibleTodayBenefitIds,
     completedBenefitIds,
   ).length;
+  // Read-only "received today" list: eligible today AND completed. Does not
+  // touch the "받을 혜택" grouping above — that still excludes completed
+  // benefits exactly as before.
+  const completedTodayIds = new Set(
+    getCompletedTodayBenefitIds(eligibleTodayBenefitIds, completedBenefitIds),
+  );
+  const completedTodayBenefits = BENEFITS.filter((benefit) => completedTodayIds.has(benefit.id));
 
   // Auto-shows Confirmation in place of Home's own body, at most once per
   // session — see useAutoConfirmation. Confirmation's own "확인 완료" button
@@ -40,6 +50,18 @@ export function Home() {
           <BenefitAppSection key={group.app.id} group={group} onLaunch={launchApp} />
         ))}
       </div>
+      {completedTodayBenefits.length > 0 && (
+        <section className="completed-today">
+          <h2 className="completed-today__title">받은 혜택</h2>
+          <ul className="completed-today__list">
+            {completedTodayBenefits.map((benefit) => (
+              <li key={benefit.id} className="completed-today__item">
+                {BENEFIT_APPS.find((app) => app.id === benefit.appId)?.name} · {benefit.name}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {/* Manual dev/QA entry point, kept alongside auto-exposure above.
           Bypasses the once-per-session auto gate entirely (no sessionStorage
           read/write here), so QA can re-open Confirmation on demand even

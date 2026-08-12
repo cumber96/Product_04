@@ -60,3 +60,19 @@ export function getConfirmationCandidateBenefitIds(
 ): string[] {
   return eligibleTodayBenefitIds.filter((id) => !completedBenefitIds.has(id));
 }
+
+/**
+ * Ids of benefits actually received today: eligible today AND completed.
+ * completedBenefitIds itself has no date scope (it never resets), but every
+ * id ever added to it came from a Confirmation candidate — i.e. was in that
+ * day's eligibleTodayBenefitIds at the time — so intersecting with today's
+ * eligibleTodayBenefitIds is enough to scope it to today without needing
+ * any new storage. Complements getConfirmationCandidateBenefitIds above;
+ * together the two partition eligibleTodayBenefitIds.
+ */
+export function getCompletedTodayBenefitIds(
+  eligibleTodayBenefitIds: string[],
+  completedBenefitIds: ReadonlySet<string>,
+): string[] {
+  return eligibleTodayBenefitIds.filter((id) => completedBenefitIds.has(id));
+}

@@ -102,6 +102,33 @@
   cursor: not-allowed;
 }
 
+.completed-today {
+  margin-top: 2rem;
+}
+
+.completed-today__title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+}
+
+.completed-today__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.completed-today__item {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border, #e5e4e7);
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  opacity: 0.75;
+}
+
 .home__confirm-link {
   display: block;
   text-align: center;
