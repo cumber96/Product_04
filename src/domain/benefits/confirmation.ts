@@ -2,8 +2,9 @@ import type { BenefitAppId } from './types';
 
 /**
  * Snapshot of which benefits were 'available' at the moment a financial app
- * was launched from Product 04. Confirmation must only ever offer benefits
- * from this snapshot, not the app's full benefit list.
+ * was launched from Product 04. This is an audit log of launches only —
+ * Confirmation's candidate set is EligibleTodayRecord minus completed ids,
+ * not this snapshot (see domain/benefits/eligibleToday.ts).
  */
 export interface AppLaunchSnapshot {
   appId: BenefitAppId;
@@ -17,15 +18,6 @@ export function createAppLaunchSnapshot(
   launchedAt: string = new Date().toISOString(),
 ): AppLaunchSnapshot {
   return { appId, launchedAt, availableBenefitIds };
-}
-
-/**
- * User's picks from a snapshot on Confirmation — which of the benefits that
- * were available at launch time were actually received.
- */
-export interface ConfirmationDraft {
-  snapshot: AppLaunchSnapshot;
-  selectedBenefitIds: string[];
 }
 
 /**

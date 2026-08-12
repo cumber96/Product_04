@@ -7,8 +7,9 @@ import { APP_LAUNCH_URLS } from '../../platform/web/benefits/appLaunchUrls';
 
 /**
  * Launching an app snapshots its currently-available benefits before doing
- * anything else, so Confirmation (Step 4) always sees what was available at
- * launch time even if steps/time conditions change while the user is away.
+ * anything else. This is an audit log of Product 04 launches only —
+ * Confirmation does not read from it; its candidates come from
+ * EligibleTodayRecord instead (see domain/benefits/eligibleToday.ts).
  * The snapshot save must complete before navigating away to the app.
  */
 export function useAppLaunch(statusMap: BenefitStatusMap) {
