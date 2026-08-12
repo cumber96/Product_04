@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BENEFITS } from '../../domain/benefits/catalog';
 import { computeStatusMap, getSummary } from '../../domain/benefits/benefitStatusStore';
-import { computeBaselineStatus } from '../../domain/benefits/benefitConditionStatus';
+import { computeBaselineStatus, getExpiredBenefitIds } from '../../domain/benefits/benefitConditionStatus';
 import { useLatestSteps } from '../../platform/web/steps/useLatestSteps';
 import { usePageReactivation } from '../../platform/web/lifecycle/usePageReactivation';
 import {
@@ -33,6 +33,14 @@ export function useBenefitStatuses() {
     [currentSteps, reactivationTick],
   );
 
+  // Home-display-only: benefits whose time window has fully closed today
+  // (currently just morning, once it's afternoon). Does not feed
+  // baselineStatus/eligibleToday — see getExpiredBenefitIds.
+  const expiredBenefitIds = useMemo(
+    () => new Set(getExpiredBenefitIds(BENEFITS)),
+    [reactivationTick],
+  );
+
   const statusMap = useMemo(
     () => computeStatusMap(BENEFITS, baselineStatus, completedBenefitIds),
     [baselineStatus, completedBenefitIds],
@@ -46,5 +54,6 @@ export function useBenefitStatuses() {
     completedBenefitIds,
     setCompletedBenefitIds,
     eligibleTodayBenefitIds,
+    expiredBenefitIds,
   };
 }

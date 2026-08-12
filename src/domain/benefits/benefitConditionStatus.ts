@@ -61,3 +61,28 @@ export function getMetConditionBenefitIds(
     .filter((benefit) => isConditionMetNow(benefit.condition, context))
     .map((benefit) => benefit.id);
 }
+
+/**
+ * True when a benefit's time window has fully closed for today, even though
+ * its condition isn't met right now — currently only morning benefits once
+ * local time has moved into the afternoon. Distinct from 'locked', which
+ * means "not yet, but still might happen today" (afternoon before noon,
+ * steps not yet reached). This is a Home-display concept only: it does not
+ * feed eligibleToday or completed, which are computed independently via
+ * isConditionMetNow/getMetConditionBenefitIds above.
+ */
+function isConditionExpiredToday(condition: BenefitCondition, now: Date): boolean {
+  return condition.type === 'morning' && getLocalTimeOfDay(now) === 'afternoon';
+}
+
+/**
+ * Ids of benefits Home should stop listing today because their time window
+ * has fully closed and they were never completed. Used only to filter
+ * Home's visible benefit list — it has no bearing on eligibleToday,
+ * completed, or Confirmation.
+ */
+export function getExpiredBenefitIds(benefits: Benefit[], now: Date = new Date()): string[] {
+  return benefits
+    .filter((benefit) => isConditionExpiredToday(benefit.condition, now))
+    .map((benefit) => benefit.id);
+}

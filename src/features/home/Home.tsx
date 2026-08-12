@@ -10,10 +10,15 @@ import { BenefitAppSection } from './BenefitAppSection';
 import './Home.css';
 
 export function Home() {
-  const { statusMap, summary, completedBenefitIds, eligibleTodayBenefitIds } =
+  const { statusMap, summary, completedBenefitIds, eligibleTodayBenefitIds, expiredBenefitIds } =
     useBenefitStatuses();
   const { launchApp } = useAppLaunch(statusMap);
-  const groups = getVisibleBenefitGroups(BENEFIT_APPS, BENEFITS, statusMap);
+  // Expired (time window closed today, e.g. morning once it's afternoon)
+  // benefits are dropped before grouping, so Home never lists them as
+  // still-lockable. eligibleToday/completed/Confirmation are unaffected —
+  // expiredBenefitIds only shapes what Home displays.
+  const visibleBenefits = BENEFITS.filter((benefit) => !expiredBenefitIds.has(benefit.id));
+  const groups = getVisibleBenefitGroups(BENEFIT_APPS, visibleBenefits, statusMap);
   const pendingConfirmationCount = getConfirmationCandidateBenefitIds(
     eligibleTodayBenefitIds,
     completedBenefitIds,
