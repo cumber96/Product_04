@@ -1,8 +1,10 @@
 import { BENEFIT_APPS, BENEFITS } from '../../domain/benefits/catalog';
 import { getVisibleBenefitGroups } from '../../domain/benefits/benefitStatusStore';
 import { getConfirmationCandidateBenefitIds } from '../../domain/benefits/eligibleToday';
+import { Confirmation } from '../confirmation/Confirmation';
 import { useBenefitStatuses } from './useBenefitStatuses';
 import { useAppLaunch } from './useAppLaunch';
+import { useAutoConfirmation } from './useAutoConfirmation';
 import { HomeSummary } from './HomeSummary';
 import { BenefitAppSection } from './BenefitAppSection';
 import './Home.css';
@@ -17,6 +19,14 @@ export function Home() {
     completedBenefitIds,
   ).length;
 
+  // Auto-shows Confirmation in place of Home's own body, at most once per
+  // session — see useAutoConfirmation. Confirmation's own "확인 완료" button
+  // still hard-navigates to '/', so no dismiss callback is needed here.
+  const showAutoConfirmation = useAutoConfirmation(pendingConfirmationCount);
+  if (showAutoConfirmation) {
+    return <Confirmation />;
+  }
+
   return (
     <div className="home">
       <HomeSummary summary={summary} />
@@ -25,9 +35,10 @@ export function Home() {
           <BenefitAppSection key={group.app.id} group={group} onLaunch={launchApp} />
         ))}
       </div>
-      {/* Temporary dev/QA entry point for Confirmation until app return is
-          auto-detected. Candidate calculation itself is app-independent —
-          this link just navigates there. */}
+      {/* Manual dev/QA entry point, kept alongside auto-exposure above.
+          Bypasses the once-per-session auto gate entirely (no sessionStorage
+          read/write here), so QA can re-open Confirmation on demand even
+          after the automatic flow has already fired this session. */}
       <a className="home__confirm-link" href="?confirm=1">
         받은 혜택 확인하기{pendingConfirmationCount > 0 ? ` (${pendingConfirmationCount})` : ''}
       </a>

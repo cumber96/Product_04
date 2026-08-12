@@ -13,11 +13,13 @@ import {
  * daily, morning, afternoon, monthly-last-day) into EligibleTodayRecord.
  * Only ever adds ids — a condition that stops being met later in the same
  * local day (steps dropping, morning turning to afternoon) never removes an
- * id already recorded today. Runs once on mount (captures the moment the
- * page was loaded) and again whenever ?steps= changes; there is no live
- * clock tick, matching the rest of this app's URL-param-driven state.
+ * id already recorded today. Runs on mount, whenever ?steps= changes, and
+ * whenever reactivationTick bumps (see usePageReactivation) — the last one
+ * is what re-evaluates purely time-based conditions (morning → afternoon,
+ * today → the month's last day) when the user returns to a page that was
+ * never unloaded, since currentSteps alone wouldn't change in that case.
  */
-export function useEligibleToday(currentSteps: number | null): string[] {
+export function useEligibleToday(currentSteps: number | null, reactivationTick: number): string[] {
   const [record, setRecord] = useState(() => loadEligibleTodayRecord());
 
   useEffect(() => {
@@ -34,7 +36,7 @@ export function useEligibleToday(currentSteps: number | null): string[] {
       }
       return next;
     });
-  }, [currentSteps]);
+  }, [currentSteps, reactivationTick]);
 
   return record.benefitIds;
 }
