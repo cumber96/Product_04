@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { BENEFITS } from '../../domain/benefits/catalog';
 import { computeStatusMap, getSummary } from '../../domain/benefits/benefitStatusStore';
 import { computeBaselineStatus } from '../../domain/benefits/benefitConditionStatus';
-import { useStepsQueryParam } from '../../platform/web/steps/useStepsQueryParam';
+import { useLatestSteps } from '../../platform/web/steps/useLatestSteps';
 import { usePageReactivation } from '../../platform/web/lifecycle/usePageReactivation';
 import {
   loadCompletedBenefitIds,
@@ -16,7 +16,7 @@ export function useBenefitStatuses() {
   // returning from a financial app re-evaluates local time/date and steps,
   // not just whatever was true at the original mount.
   const reactivationTick = usePageReactivation();
-  const currentSteps = useStepsQueryParam(reactivationTick);
+  const currentSteps = useLatestSteps(reactivationTick);
   const [completedBenefitIds, setCompletedBenefitIds] = useState(loadCompletedBenefitIds);
 
   useEffect(() => {
