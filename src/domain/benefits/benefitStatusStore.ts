@@ -1,4 +1,4 @@
-import type { Benefit, BenefitApp, BenefitStatus, BenefitStatusMap } from './types';
+import type { Benefit, BenefitApp, BenefitAppId, BenefitStatus, BenefitStatusMap } from './types';
 
 /**
  * Merges a baseline status (from seed data today, later from real
@@ -33,6 +33,7 @@ export function getSummary(benefits: Benefit[], statusMap: BenefitStatusMap): Be
 export interface BenefitAppGroup {
   app: BenefitApp;
   benefits: Array<{ benefit: Benefit; status: BenefitStatus }>;
+  availableCount: number;
 }
 
 /**
@@ -45,12 +46,30 @@ export function getVisibleBenefitGroups(
   statusMap: BenefitStatusMap,
 ): BenefitAppGroup[] {
   return apps
-    .map((app) => ({
-      app,
-      benefits: benefits
+    .map((app) => {
+      const visibleBenefits = benefits
         .filter((benefit) => benefit.appId === app.id)
         .map((benefit) => ({ benefit, status: statusMap[benefit.id] ?? 'available' }))
-        .filter(({ status }) => status !== 'completed'),
-    }))
+        .filter(({ status }) => status !== 'completed');
+      return {
+        app,
+        benefits: visibleBenefits,
+        availableCount: visibleBenefits.filter(({ status }) => status === 'available').length,
+      };
+    })
     .filter((group) => group.benefits.length > 0);
+}
+
+/**
+ * IDs of the benefits that are 'available' for one app right now — the set
+ * an AppLaunchSnapshot should capture at the moment its app is launched.
+ */
+export function getAvailableBenefitIds(
+  benefits: Benefit[],
+  appId: BenefitAppId,
+  statusMap: BenefitStatusMap,
+): string[] {
+  return benefits
+    .filter((benefit) => benefit.appId === appId && statusMap[benefit.id] === 'available')
+    .map((benefit) => benefit.id);
 }
