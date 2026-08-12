@@ -58,9 +58,10 @@ export function useConfirmation() {
     });
   }
 
-  function confirm(): void {
+  function confirm(): Set<string> {
     const updated = applyConfirmation(loadCompletedBenefitIds(), [...selectedBenefitIds]);
     saveCompletedBenefitIds(updated);
+    return updated;
   }
 
   return { groups, selectedBenefitIds, toggleBenefit, confirm };

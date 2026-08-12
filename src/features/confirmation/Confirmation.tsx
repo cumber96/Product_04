@@ -1,12 +1,20 @@
 import { useConfirmation } from './useConfirmation';
 import './Confirmation.css';
 
-export function Confirmation() {
+export function Confirmation({
+  onConfirmed,
+}: {
+  onConfirmed?: (completedBenefitIds: Set<string>) => void;
+} = {}) {
   const { groups, selectedBenefitIds, toggleBenefit, confirm } = useConfirmation();
 
   function handleConfirm() {
-    confirm();
-    window.location.href = '/';
+    const updated = confirm();
+    if (onConfirmed) {
+      onConfirmed(updated);
+    } else {
+      window.location.href = '/';
+    }
   }
 
   return (
