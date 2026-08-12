@@ -37,8 +37,9 @@ export interface BenefitAppGroup {
 }
 
 /**
- * Groups benefits by app for Home, excluding completed ones from each
- * group's list (they still count toward the header summary).
+ * Groups benefits by app for Home. Completed benefits stay in their app's
+ * list (Home is a hub for the app, not just a to-do list), but never count
+ * toward availableCount below.
  */
 export function getVisibleBenefitGroups(
   apps: BenefitApp[],
@@ -49,8 +50,7 @@ export function getVisibleBenefitGroups(
     .map((app) => {
       const visibleBenefits = benefits
         .filter((benefit) => benefit.appId === app.id)
-        .map((benefit) => ({ benefit, status: statusMap[benefit.id] ?? 'available' }))
-        .filter(({ status }) => status !== 'completed');
+        .map((benefit) => ({ benefit, status: statusMap[benefit.id] ?? 'available' }));
       return {
         app,
         benefits: visibleBenefits,

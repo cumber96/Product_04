@@ -3,7 +3,7 @@ import type { Benefit, BenefitStatus } from '../../domain/benefits/types';
 const STATUS_LABEL: Record<BenefitStatus, string> = {
   locked: '아직 받을 수 없음',
   available: '받을 수 있음',
-  completed: '완료',
+  completed: '✓ 받음',
 };
 
 export function BenefitListItem({ benefit, status }: { benefit: Benefit; status: BenefitStatus }) {

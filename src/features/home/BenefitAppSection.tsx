@@ -24,7 +24,6 @@ export function BenefitAppSection({
         type="button"
         className="benefit-app-section__launch-button"
         onClick={() => onLaunch(group.app.id)}
-        disabled={group.availableCount === 0}
       >
         {group.app.name} 열기
       </button>
