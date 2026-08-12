@@ -96,3 +96,8 @@
   border-radius: 0.5rem;
   cursor: pointer;
 }
+
+.benefit-app-section__launch-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
