@@ -6,7 +6,7 @@ import type { BenefitAppId } from '../../../domain/benefits/types';
  * automations set up on the user's iPhone, not on app identity itself.
  */
 export const APP_LAUNCH_URLS: Record<BenefitAppId, string> = {
-  toss: 'shortcuts://run-shortcut?name=Product04-Toss',
+  toss: 'supertoss://',
   monimo: 'shortcuts://run-shortcut?name=Product04-Monimo',
   kakaobank: 'shortcuts://run-shortcut?name=Product04-KakaoBank',
 };
