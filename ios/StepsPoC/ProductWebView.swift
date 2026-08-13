@@ -4,8 +4,9 @@ import WidgetKit
 
 /// Displays Product 04 inside the app, full-screen, with no Safari chrome.
 /// http/https navigations load normally; any other scheme (e.g. the
-/// shortcuts:// URLs Product 04 uses to launch banking apps) is handed off
-/// to iOS via UIApplication and cancelled in the WebView itself.
+/// supertoss://, monimo://, kakaobank:// schemes Product 04 uses to launch
+/// banking apps directly) is handed off to iOS via UIApplication and
+/// cancelled in the WebView itself.
 struct ProductWebView: UIViewRepresentable {
     let url: URL
 
