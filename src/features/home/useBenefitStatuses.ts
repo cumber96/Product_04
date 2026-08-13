@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { BENEFITS } from '../../domain/benefits/catalog';
 import { computeStatusMap, getSummary } from '../../domain/benefits/benefitStatusStore';
 import { computeBaselineStatus, getExpiredBenefitIds } from '../../domain/benefits/benefitConditionStatus';
@@ -8,6 +8,7 @@ import {
   loadCompletedBenefitIds,
   saveCompletedBenefitIds,
 } from '../../platform/web/benefits/benefitStatusStorage';
+import { postWidgetSnapshot } from '../../platform/web/widget/postWidgetSnapshot';
 import { useEligibleToday } from './useEligibleToday';
 
 export function useBenefitStatuses() {
@@ -47,6 +48,20 @@ export function useBenefitStatuses() {
   );
 
   const summary = useMemo(() => getSummary(BENEFITS, statusMap), [statusMap]);
+
+  // Widget snapshot: native only needs to hear about this when the
+  // available count actually changes, not on every statusMap recompute.
+  const pendingBenefitCount = useMemo(
+    () => Object.values(statusMap).filter((status) => status === 'available').length,
+    [statusMap],
+  );
+  const lastPostedPendingBenefitCountRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (lastPostedPendingBenefitCountRef.current === pendingBenefitCount) return;
+    lastPostedPendingBenefitCountRef.current = pendingBenefitCount;
+    postWidgetSnapshot({ pendingBenefitCount, updatedAt: new Date().toISOString() });
+  }, [pendingBenefitCount]);
 
   return {
     statusMap,
