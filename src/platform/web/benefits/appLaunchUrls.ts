@@ -7,6 +7,6 @@ import type { BenefitAppId } from '../../../domain/benefits/types';
  */
 export const APP_LAUNCH_URLS: Record<BenefitAppId, string> = {
   toss: 'supertoss://',
-  monimo: 'shortcuts://run-shortcut?name=Product04-Monimo',
+  monimo: 'monimo://',
   kakaobank: 'shortcuts://run-shortcut?name=Product04-KakaoBank',
 };
