@@ -10,9 +10,8 @@ export function ScreenHeader({ title, onBack }: { title?: string; onBack: () => 
     <header className="screen-header">
       <button type="button" className="screen-header__back" onClick={onBack} aria-label="뒤로">
         <svg
+          className="screen-header__back-icon"
           viewBox="0 0 24 24"
-          width="20"
-          height="20"
           fill="none"
           stroke="currentColor"
           strokeWidth="2"

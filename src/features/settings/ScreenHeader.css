@@ -13,11 +13,25 @@
   justify-content: center;
   width: 44px;
   height: 44px;
+  /* The chevron's ink starts ~8px inside its 24px icon box (round join at
+     the tip, inset by half the stroke width), and that icon box is
+     centered with another 10px inset inside the 44px hit target — 18px
+     of empty space the page-padding grid line shouldn't count. Pulling
+     the whole 44px target left by that amount lines the visible stroke
+     up with --page-padding-inline while keeping the full touch target
+     (it just extends into the page's own inline padding, which nothing
+     else occupies). */
+  margin-left: -1.125rem;
   padding: 0;
   color: var(--text);
   background: transparent;
   border: none;
   cursor: pointer;
+}
+
+.screen-header__back-icon {
+  width: 24px;
+  height: 24px;
 }
 
 .screen-header__title {

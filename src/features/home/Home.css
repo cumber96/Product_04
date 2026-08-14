@@ -38,28 +38,34 @@
 }
 
 .home__action-bar {
-  /* Shared by the outer stroke and the center divider so they always read
-     as the same hierarchy level (see section 2 of the UI polish pass). */
-  --action-bar-stroke: color-mix(in srgb, var(--bg) 80%, var(--text) 20%);
-  /* Positioned directly against the viewport, independent of the region's
-     box or any scroll content, so its screen offset can't drift when
-     Home is scrolled to its end. */
+  /* Local to the floating bar only — not promoted to a global token since
+     nothing else in the app currently uses this fixed light "surface"
+     palette (see section 2 of the UI polish pass). */
+  --action-bar-bg: #f2f3f5;
+  --action-bar-border: #eeeff2;
+  --action-bar-divider: #d7dce3;
+  --action-bar-icon: #a4afbb;
+  --action-bar-text: #2d3a4a;
+  /* left/right (not transform) do the horizontal centering, so the fixed
+     box has no transform of its own — on iOS/WKWebView a `transform` on a
+     position:fixed element can be resolved a frame behind the visual
+     viewport during rubber-band overscroll, which is what made the bar
+     visibly creep upward when Home was scrolled to its end. Centering via
+     inset + margin-inline keeps bottom purely a function of the viewport,
+     with nothing else in the positioning math for the compositor to get
+     out of sync on. */
   position: fixed;
-  left: 50%;
+  left: var(--page-padding-inline);
+  right: var(--page-padding-inline);
   bottom: calc(env(safe-area-inset-bottom, 0px) + 2.5rem);
-  transform: translateX(-50%);
+  margin-inline: auto;
   display: flex;
   align-items: stretch;
-  width: calc(100% - (var(--page-padding-inline) * 2));
   max-width: calc(480px - (var(--page-padding-inline) * 2));
   overflow: hidden;
   border-radius: 999px;
-  /* Falls back to the same neutral gray used for borders elsewhere if
-     color-mix() isn't supported; otherwise a soft tint mixed from the
-     existing --bg/--text tokens — no new color constant introduced. */
-  background: var(--border, #e5e4e7);
-  background: color-mix(in srgb, var(--bg) 94%, var(--text) 6%);
-  border: 1px solid var(--action-bar-stroke);
+  background: var(--action-bar-bg);
+  border: 1px solid var(--action-bar-border);
   pointer-events: auto;
 }
 
@@ -74,7 +80,7 @@
   font: inherit;
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--text);
+  color: var(--action-bar-text);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -82,14 +88,15 @@
 
 .home__action-bar-icon {
   flex-shrink: 0;
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
+  color: var(--action-bar-icon);
 }
 
 .home__action-bar-divider {
   width: 1px;
   margin: 0.6rem 0;
-  background: var(--action-bar-stroke);
+  background: var(--action-bar-divider);
 }
 
 .home-summary {
