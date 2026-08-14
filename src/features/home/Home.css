@@ -2,27 +2,86 @@
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
-  padding: 1.5rem 1rem 3rem;
+  padding: 1.5rem 1rem calc(env(safe-area-inset-bottom, 0px) + 8rem);
 }
 
-.home__topbar {
+/* Fixed region anchoring the floating bar; itself takes no clicks so
+   content scrolling underneath (including inside the fade zone) stays
+   interactive — only the bar re-enables pointer-events. */
+.home__action-bar-region {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: 0.5rem;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  z-index: 1;
 }
 
-.home__settings-button {
-  display: inline-flex;
+/* Subtle, bar-height-scoped fade so scrolled content softens as it nears
+   the floating bar instead of staying sharp right up to its edge. Masked
+   so the gradient/blur taper off smoothly rather than cutting off hard. */
+.home__action-bar-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 7.5rem;
+  background: linear-gradient(to bottom, transparent, var(--bg) 65%);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 55%);
+  mask-image: linear-gradient(to bottom, transparent, #000 55%);
+  pointer-events: none;
+}
+
+.home__action-bar {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  width: calc(100% - 2rem);
+  max-width: 448px;
+  margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 2.5rem);
+  overflow: hidden;
+  border-radius: 999px;
+  /* Falls back to the same neutral gray used for borders elsewhere if
+     color-mix() isn't supported; otherwise a soft tint mixed from the
+     existing --bg/--text tokens — no new color constant introduced. */
+  background: var(--border, #e5e4e7);
+  background: color-mix(in srgb, var(--bg) 90%, var(--text) 8%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  pointer-events: auto;
+}
+
+.home__action-bar-button {
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  padding: 0;
+  gap: 0.35rem;
+  flex: 1;
+  min-height: 44px;
+  padding: 0.9rem 1rem;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
   color: var(--text);
   background: transparent;
   border: none;
-  border-radius: 999px;
   cursor: pointer;
+}
+
+.home__action-bar-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.home__action-bar-divider {
+  width: 1px;
+  margin: 0.6rem 0;
+  background: var(--border, #e5e4e7);
 }
 
 .home-summary {

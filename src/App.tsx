@@ -3,6 +3,7 @@ import { StepsPocPage } from './pages/StepsPocPage';
 import { ConfirmationPage } from './pages/ConfirmationPage';
 import { BenefitManagementPage } from './pages/BenefitManagementPage';
 import { AppManagementPage } from './pages/AppManagementPage';
+import { AddBenefitPage } from './pages/AddBenefitPage';
 
 function App() {
   const params = new URLSearchParams(window.location.search);
@@ -13,6 +14,10 @@ function App() {
 
   if (params.has('confirm')) {
     return <ConfirmationPage />;
+  }
+
+  if (params.has('add-benefit')) {
+    return <AddBenefitPage />;
   }
 
   if (params.get('settings') === 'benefits') {
