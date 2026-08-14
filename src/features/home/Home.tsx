@@ -112,7 +112,7 @@ export function Home() {
       {isSheetOpen && (
         <ConfirmationSheet onClose={() => setIsSheetOpen(false)} onConfirmed={handleConfirmed} />
       )}
-      <div className="home__action-bar-region">
+      <div className="home__floating-action-container">
         <div className="home__action-bar-fade" aria-hidden="true" />
         <div className="home__action-bar">
           <button

@@ -5,24 +5,32 @@
   padding: 1.5rem var(--page-padding-inline) calc(env(safe-area-inset-bottom, 0px) + 8rem);
 }
 
-/* Fixed region anchoring the fade layer to the true viewport bottom. The
-   floating bar itself is positioned independently (see
-   .home__action-bar) rather than via this container's box height, so its
-   on-screen offset never depends on scroll content or flex sizing. Takes
-   no clicks so content scrolling underneath (including inside the fade
-   zone) stays interactive — only the bar re-enables pointer-events. */
-.home__action-bar-region {
+/* Sole owner of the floating bar's viewport-bottom position: fixed to the
+   true viewport, with the bottom gap expressed as this container's own
+   padding-bottom rather than as a `bottom` value on the pill itself. The
+   pill is just a normal-flow child centered inside it (see
+   .home__action-bar), so there's only one place computing "distance from
+   the bottom of the screen" — nothing left to drift out of sync between
+   scroll states. Takes no clicks so content scrolling underneath
+   (including inside the fade zone) stays interactive — only the pill
+   re-enables pointer-events. */
+.home__floating-action-container {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
+  width: 100%;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
   pointer-events: none;
   z-index: 1;
 }
 
 /* Subtle, bar-height-scoped fade so scrolled content softens as it nears
    the floating bar instead of staying sharp right up to its edge. Masked
-   so the gradient/blur taper off smoothly rather than cutting off hard. */
+   so the gradient/blur taper off smoothly rather than cutting off hard.
+   Positioned against the container's own bottom edge (the true viewport
+   bottom) independent of the pill's height/padding, so its size can't
+   feed back into the pill's position. */
 .home__action-bar-fade {
   position: absolute;
   left: 0;
@@ -46,22 +54,15 @@
   --action-bar-divider: #d7dce3;
   --action-bar-icon: #a4afbb;
   --action-bar-text: #2d3a4a;
-  /* left/right (not transform) do the horizontal centering, so the fixed
-     box has no transform of its own — on iOS/WKWebView a `transform` on a
-     position:fixed element can be resolved a frame behind the visual
-     viewport during rubber-band overscroll, which is what made the bar
-     visibly creep upward when Home was scrolled to its end. Centering via
-     inset + margin-inline keeps bottom purely a function of the viewport,
-     with nothing else in the positioning math for the compositor to get
-     out of sync on. */
-  position: fixed;
-  left: var(--page-padding-inline);
-  right: var(--page-padding-inline);
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
+  /* A normal-flow element, centered with width + margin-inline instead of
+     a fixed/transform position of its own — the container above already
+     owns the viewport-bottom anchoring, so the pill only needs to size
+     and center itself within it. */
+  width: calc(100% - (var(--page-padding-inline) * 2));
+  max-width: calc(480px - (var(--page-padding-inline) * 2));
   margin-inline: auto;
   display: flex;
   align-items: stretch;
-  max-width: calc(480px - (var(--page-padding-inline) * 2));
   overflow: hidden;
   border-radius: 999px;
   background: var(--action-bar-bg);
