@@ -10,14 +10,14 @@ import { loadAppOrder, saveAppOrder } from '../../platform/web/benefits/appOrder
  * app or editing its benefit list never touches this.
  */
 export function useAppOrder() {
-  const [appOrder, setAppOrder] = useState<BenefitAppId[]>(() => loadAppOrder());
+  const [appOrder, setAppOrderState] = useState<BenefitAppId[]>(() => loadAppOrder());
 
   useEffect(() => {
     saveAppOrder(appOrder);
   }, [appOrder]);
 
   function moveApp(appId: BenefitAppId, direction: 'up' | 'down'): void {
-    setAppOrder((prev) => {
+    setAppOrderState((prev) => {
       // Backfill any catalog app missing from the stored order (e.g. added
       // after this user's order was last saved) into its fallback tail
       // position before moving — this is the one point where "the user
@@ -28,5 +28,17 @@ export function useAppOrder() {
     });
   }
 
-  return { appOrder, moveApp };
+  /**
+   * Commits a full order in one shot (used by the drag-reorder preview's
+   * "저장하기" action). Persists synchronously — not just via the effect
+   * above — because callers may navigate away in the same tick right after
+   * calling this (e.g. the leave-confirmation modal saves then immediately
+   * follows through on a pending window.location.href navigation).
+   */
+  function setAppOrder(nextOrder: BenefitAppId[]): void {
+    saveAppOrder(nextOrder);
+    setAppOrderState(nextOrder);
+  }
+
+  return { appOrder, moveApp, setAppOrder };
 }
