@@ -57,7 +57,7 @@
   position: fixed;
   left: var(--page-padding-inline);
   right: var(--page-padding-inline);
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 2.5rem);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
   margin-inline: auto;
   display: flex;
   align-items: stretch;
