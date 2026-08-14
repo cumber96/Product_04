@@ -6,6 +6,7 @@ import { getConfirmationCandidateBenefitIds } from '../../domain/benefits/eligib
 import { getEnabledApps } from '../../domain/benefits/enabledApps';
 import { getMyBenefitIds } from '../../domain/benefits/myBenefits';
 import { getOrderedApps } from '../../domain/benefits/appOrder';
+import { getOrderedBenefits } from '../../domain/benefits/benefitOrder';
 import { getLocalDateString } from '../../domain/date/localDate';
 import { loadEligibleTodayRecord } from '../../platform/web/benefits/eligibleTodayStorage';
 import {
@@ -15,6 +16,7 @@ import {
 import { loadEnabledAppIds } from '../../platform/web/benefits/enabledAppsStorage';
 import { loadMyBenefitIds } from '../../platform/web/benefits/myBenefitIdsStorage';
 import { loadAppOrder } from '../../platform/web/benefits/appOrderStorage';
+import { loadBenefitOrder } from '../../platform/web/benefits/benefitOrderStorage';
 
 export interface ConfirmationAppGroup {
   app: BenefitApp;
@@ -36,6 +38,7 @@ export function useConfirmation() {
   const myBenefitIds = useMemo(() => new Set(loadMyBenefitIds()), []);
   const appOrder = useMemo(() => loadAppOrder(), []);
   const orderedApps = useMemo(() => getOrderedApps(BENEFIT_APPS, appOrder), [appOrder]);
+  const benefitOrder = useMemo(() => loadBenefitOrder(), []);
   const enabledApps = useMemo(
     () => getEnabledApps(orderedApps, enabledAppIds),
     [orderedApps, enabledAppIds],
@@ -58,8 +61,11 @@ export function useConfirmation() {
     const candidateIds = new Set(
       getConfirmationCandidateBenefitIds(eligibleTodayBenefitIds, completedBenefitIds),
     );
-    return BENEFITS.filter((benefit) => candidateIds.has(benefit.id));
-  }, [eligibleTodayBenefitIds, completedBenefitIds]);
+    return getOrderedBenefits(
+      BENEFITS.filter((benefit) => candidateIds.has(benefit.id)),
+      benefitOrder,
+    );
+  }, [eligibleTodayBenefitIds, completedBenefitIds, benefitOrder]);
 
   const groups = useMemo<ConfirmationAppGroup[]>(
     () =>

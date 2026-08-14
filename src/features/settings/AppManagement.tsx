@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { BENEFIT_APPS } from '../../domain/benefits/catalog';
 import { getOrderedApps, moveAppOrder } from '../../domain/benefits/appOrder';
 import type { BenefitAppId } from '../../domain/benefits/types';
+import { Modal } from '../../components/Modal';
 import { useEnabledApps } from './useEnabledApps';
 import { useAppOrder } from './useAppOrder';
 import { useDragReorder } from './useDragReorder';
@@ -225,27 +226,27 @@ export function AppManagement() {
       )}
 
       {pendingAction && (
-        <div className="app-management__modal-backdrop">
-          <div className="app-management__modal">
-            <p className="app-management__modal-title">바꾼 내용을 저장할까요?</p>
-            <div className="app-management__modal-actions">
+        <Modal>
+          <div className="modal__content">
+            <p className="modal__title">바꾼 내용을 저장할까요?</p>
+            <div className="modal__actions">
               <button
                 type="button"
-                className="app-management__modal-button"
+                className="modal__button"
                 onClick={() => resolvePending(false)}
               >
                 아니요
               </button>
               <button
                 type="button"
-                className="app-management__modal-button app-management__modal-button--primary"
+                className="modal__button modal__button--primary"
                 onClick={() => resolvePending(true)}
               >
                 저장하기
               </button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

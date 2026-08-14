@@ -1,70 +1,69 @@
 import { useCallback, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
-import type { BenefitAppId } from '../../domain/benefits/types';
 
-interface DragState {
-  draggedId: BenefitAppId;
+interface DragState<T> {
+  draggedId: T;
   offsetY: number;
 }
 
-interface DragInfo {
+interface DragInfo<T> {
   pointerId: number;
-  draggedId: BenefitAppId;
+  draggedId: T;
   startClientY: number;
   startIndex: number;
   slotHeight: number;
-  gestureStartOrder: BenefitAppId[];
+  gestureStartOrder: T[];
 }
 
 /**
- * Pointer-events-only drag reorder for the order-mode preview list. Only
- * ever calls setPreviewOrder — never touches useAppOrder/localStorage, so a
- * drag gesture alone can never persist anything.
+ * Pointer-events-only drag reorder for an order-mode preview list. Only
+ * ever calls setPreviewOrder — never touches any persisted order/
+ * localStorage, so a drag gesture alone can never persist anything.
+ * Generic over the id type (T extends string) so both app ids
+ * (AppManagement) and benefit ids (BenefitManagement) can reuse this same
+ * implementation without duplicating the pointer-event logic.
  *
  * The dragged item's target slot is recomputed on every pointermove from
  * total displacement since gesture start (startIndex + deltaY/slotHeight),
  * not by incrementally swapping on each neighbor-midpoint crossing — this
  * avoids any drift accumulating across many small moves.
  */
-export function useDragReorder(
-  previewOrder: BenefitAppId[],
-  setPreviewOrder: (next: BenefitAppId[]) => void,
+export function useDragReorder<T extends string>(
+  previewOrder: T[],
+  setPreviewOrder: (next: T[]) => void,
 ) {
-  const [dragState, setDragState] = useState<DragState | null>(null);
-  const rowRefs = useRef(new Map<BenefitAppId, HTMLLIElement>());
-  const dragInfoRef = useRef<DragInfo | null>(null);
+  const [dragState, setDragState] = useState<DragState<T> | null>(null);
+  const rowRefs = useRef(new Map<T, HTMLLIElement>());
+  const dragInfoRef = useRef<DragInfo<T> | null>(null);
 
-  const registerRow = useCallback((appId: BenefitAppId, el: HTMLLIElement | null) => {
+  const registerRow = useCallback((id: T, el: HTMLLIElement | null) => {
     if (el) {
-      rowRefs.current.set(appId, el);
+      rowRefs.current.set(id, el);
     } else {
-      rowRefs.current.delete(appId);
+      rowRefs.current.delete(id);
     }
   }, []);
 
-  function measureSlotHeight(order: BenefitAppId[]): number {
-    const firstEl = order[0] ? rowRefs.current.get(order[0]) : undefined;
-    const secondEl = order[1] ? rowRefs.current.get(order[1]) : undefined;
+  function measureSlotHeight(order: T[]): number {
+    const firstEl = order[0] !== undefined ? rowRefs.current.get(order[0]) : undefined;
+    const secondEl = order[1] !== undefined ? rowRefs.current.get(order[1]) : undefined;
     if (firstEl && secondEl) {
       return secondEl.getBoundingClientRect().top - firstEl.getBoundingClientRect().top;
     }
     return firstEl ? firstEl.getBoundingClientRect().height : 60;
   }
 
-  function handlePointerDown(
-    appId: BenefitAppId,
-    event: ReactPointerEvent<HTMLButtonElement>,
-  ): void {
+  function handlePointerDown(id: T, event: ReactPointerEvent<HTMLButtonElement>): void {
     event.currentTarget.setPointerCapture(event.pointerId);
     dragInfoRef.current = {
       pointerId: event.pointerId,
-      draggedId: appId,
+      draggedId: id,
       startClientY: event.clientY,
-      startIndex: previewOrder.indexOf(appId),
+      startIndex: previewOrder.indexOf(id),
       slotHeight: measureSlotHeight(previewOrder) || 60,
       gestureStartOrder: previewOrder,
     };
-    setDragState({ draggedId: appId, offsetY: 0 });
+    setDragState({ draggedId: id, offsetY: 0 });
   }
 
   function handlePointerMove(event: ReactPointerEvent<HTMLButtonElement>): void {

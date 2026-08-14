@@ -3,8 +3,10 @@ import './Confirmation.css';
 
 export function Confirmation({
   onConfirmed,
+  onClose,
 }: {
   onConfirmed?: (completedBenefitIds: Set<string>) => void;
+  onClose?: () => void;
 } = {}) {
   const { groups, selectedBenefitIds, toggleBenefit, confirm } = useConfirmation();
 
@@ -19,7 +21,19 @@ export function Confirmation({
 
   return (
     <div className="confirmation">
-      <h1 className="confirmation__title">오늘 받은 혜택을 확인해주세요</h1>
+      <div className="confirmation__header">
+        <h1 className="confirmation__title">오늘 받은 혜택을 확인해주세요</h1>
+        {onClose && (
+          <button
+            type="button"
+            className="confirmation__close"
+            onClick={onClose}
+            aria-label="닫기"
+          >
+            ×
+          </button>
+        )}
+      </div>
       {groups.length === 0 ? (
         <p className="confirmation__empty">확인할 혜택이 없습니다.</p>
       ) : (

@@ -5,6 +5,8 @@ import { getConfirmationCandidateBenefitIds } from '../../domain/benefits/eligib
 import { getEnabledApps } from '../../domain/benefits/enabledApps';
 import { getMyBenefitIds, getMyBenefits } from '../../domain/benefits/myBenefits';
 import { getOrderedApps } from '../../domain/benefits/appOrder';
+import { getOrderedBenefits } from '../../domain/benefits/benefitOrder';
+import { loadBenefitOrder } from '../../platform/web/benefits/benefitOrderStorage';
 import { ConfirmationSheet } from '../confirmation/ConfirmationSheet';
 import { useEnabledApps } from '../settings/useEnabledApps';
 import { useMyBenefits } from '../settings/useMyBenefits';
@@ -33,9 +35,12 @@ export function Home() {
     () => getEnabledApps(orderedApps, enabledAppIds),
     [orderedApps, enabledAppIds],
   );
+  // Read-only, one-time load — nothing on this page writes benefit order,
+  // it's only ever edited from the per-app benefit management screen.
+  const benefitOrder = useMemo(() => loadBenefitOrder(), []);
   const myBenefits = useMemo(
-    () => getMyBenefits(BENEFITS, enabledAppIds, myBenefitIds),
-    [enabledAppIds, myBenefitIds],
+    () => getOrderedBenefits(getMyBenefits(BENEFITS, enabledAppIds, myBenefitIds), benefitOrder),
+    [enabledAppIds, myBenefitIds, benefitOrder],
   );
   const myBenefitIdSet = useMemo(
     () => getMyBenefitIds(BENEFITS, enabledAppIds, myBenefitIds),
