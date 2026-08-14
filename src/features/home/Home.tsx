@@ -4,9 +4,11 @@ import { getVisibleBenefitGroups } from '../../domain/benefits/benefitStatusStor
 import { getConfirmationCandidateBenefitIds } from '../../domain/benefits/eligibleToday';
 import { getEnabledApps } from '../../domain/benefits/enabledApps';
 import { getMyBenefitIds, getMyBenefits } from '../../domain/benefits/myBenefits';
+import { getOrderedApps } from '../../domain/benefits/appOrder';
 import { ConfirmationSheet } from '../confirmation/ConfirmationSheet';
 import { useEnabledApps } from '../settings/useEnabledApps';
 import { useMyBenefits } from '../settings/useMyBenefits';
+import { useAppOrder } from '../settings/useAppOrder';
 import { useBenefitStatuses } from './useBenefitStatuses';
 import { useAppLaunch } from './useAppLaunch';
 import { useAutoConfirmation } from './useAutoConfirmation';
@@ -22,9 +24,14 @@ export function Home() {
   // itself. See domain/benefits/myBenefits.ts.
   const { enabledAppIds } = useEnabledApps();
   const { myBenefitIds } = useMyBenefits();
+  const { appOrder } = useAppOrder();
+  const orderedApps = useMemo(
+    () => getOrderedApps(BENEFIT_APPS, appOrder),
+    [appOrder],
+  );
   const enabledApps = useMemo(
-    () => getEnabledApps(BENEFIT_APPS, enabledAppIds),
-    [enabledAppIds],
+    () => getEnabledApps(orderedApps, enabledAppIds),
+    [orderedApps, enabledAppIds],
   );
   const myBenefits = useMemo(
     () => getMyBenefits(BENEFITS, enabledAppIds, myBenefitIds),
