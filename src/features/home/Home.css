@@ -20,7 +20,7 @@
   right: 0;
   bottom: 0;
   width: 100%;
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   pointer-events: none;
   z-index: 1;
 }
@@ -36,6 +36,7 @@
   left: 0;
   right: 0;
   bottom: 0;
+  z-index: 0;
   height: 7.5rem;
   background: linear-gradient(to bottom, transparent, var(--bg) 65%);
   -webkit-backdrop-filter: blur(6px);
@@ -68,6 +69,15 @@
   background: var(--action-bar-bg);
   border: 1px solid var(--action-bar-border);
   pointer-events: auto;
+  /* Stacking, not layout: with no position at all this paints in normal
+     flow order, which puts it *behind* the fade (an absolutely
+     positioned sibling painted in its own layer) even though it comes
+     later in the DOM — the fade's gradient/blur/mask then visibly washes
+     over the pill's icons/text. `relative` (no offsets, so no movement)
+     puts the pill in the same "positioned" paint layer as the fade, and
+     z-index breaks the DOM-order tie so the pill always wins. */
+  position: relative;
+  z-index: 1;
 }
 
 .home__action-bar-button {

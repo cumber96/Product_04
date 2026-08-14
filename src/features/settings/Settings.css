@@ -2,7 +2,12 @@
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
-  padding: 1.5rem var(--page-padding-inline) 3rem;
+  /* Every screen that reaches here renders a ScreenHeader flush against
+     the top of the page (no separate chrome above it), so this is the
+     one shared place to clear the status bar / Dynamic Island now that
+     contentInsetAdjustmentBehavior = .never leaves WKWebView without an
+     automatic top inset. Home doesn't use .settings and isn't affected. */
+  padding: calc(1.5rem + env(safe-area-inset-top, 0px)) var(--page-padding-inline) 3rem;
 }
 
 .settings__section-title {
