@@ -9,7 +9,7 @@ import WidgetKit
 /// cancelled in the WebView itself.
 struct ProductWebView: UIViewRepresentable {
     let url: URL
-
+    
     func makeCoordinator() -> Coordinator {
         Coordinator()
     }
@@ -23,6 +23,12 @@ struct ProductWebView: UIViewRepresentable {
         )
 
         let webView = WKWebView(frame: .zero, configuration: configuration)
+        // SwiftUI's .ignoresSafeArea() already lays this view out full-screen;
+        // without this, the scroll view's default .automatic behavior
+        // re-applies its own safe-area-based bottom content inset on top of
+        // that, and the two disagree during scroll (visible as the Home
+        // floating bar drifting near the bottom of the page).
+        webView.scrollView.contentInsetAdjustmentBehavior = .never
         #if DEBUG
         if #available(iOS 16.4, *) {
             webView.isInspectable = true
