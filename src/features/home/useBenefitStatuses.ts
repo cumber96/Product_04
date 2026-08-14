@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BENEFITS } from '../../domain/benefits/catalog';
+import type { Benefit } from '../../domain/benefits/types';
 import { computeStatusMap, getSummary } from '../../domain/benefits/benefitStatusStore';
 import { computeBaselineStatus, getExpiredBenefitIds } from '../../domain/benefits/benefitConditionStatus';
 import { useLatestSteps } from '../../platform/web/steps/useLatestSteps';
@@ -11,7 +12,14 @@ import {
 import { postWidgetSnapshot } from '../../platform/web/widget/postWidgetSnapshot';
 import { useEligibleToday } from './useEligibleToday';
 
-export function useBenefitStatuses() {
+/**
+ * myBenefits scopes the summary total/available and the widget's
+ * pendingBenefitCount to the benefits the user actually tracks right now
+ * (see domain/benefits/myBenefits.ts) — statusMap itself still covers every
+ * benefit in the catalog, since a benefit outside myBenefits keeps its real
+ * condition/completed status, it's just excluded from these aggregates.
+ */
+export function useBenefitStatuses(myBenefits: Benefit[]) {
   // Ticks when the page becomes usable again without having reloaded (see
   // usePageReactivation) — re-derives steps/baseline/eligibleToday below so
   // returning from a financial app re-evaluates local time/date and steps,
@@ -47,13 +55,18 @@ export function useBenefitStatuses() {
     [baselineStatus, completedBenefitIds],
   );
 
-  const summary = useMemo(() => getSummary(BENEFITS, statusMap), [statusMap]);
+  const summary = useMemo(
+    () => getSummary(myBenefits, statusMap),
+    [myBenefits, statusMap],
+  );
 
   // Widget snapshot: native only needs to hear about this when the
   // available count actually changes, not on every statusMap recompute.
+  // Scoped to myBenefits so anything outside the user's current selection
+  // never counts toward what the widget shows.
   const pendingBenefitCount = useMemo(
-    () => Object.values(statusMap).filter((status) => status === 'available').length,
-    [statusMap],
+    () => myBenefits.filter((benefit) => statusMap[benefit.id] === 'available').length,
+    [myBenefits, statusMap],
   );
   const lastPostedPendingBenefitCountRef = useRef<number | null>(null);
 

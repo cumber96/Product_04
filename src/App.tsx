@@ -1,6 +1,8 @@
 import { HomePage } from './pages/HomePage';
 import { StepsPocPage } from './pages/StepsPocPage';
 import { ConfirmationPage } from './pages/ConfirmationPage';
+import { SettingsPage } from './pages/SettingsPage';
+import { BenefitManagementPage } from './pages/BenefitManagementPage';
 
 function App() {
   const params = new URLSearchParams(window.location.search);
@@ -11,6 +13,14 @@ function App() {
 
   if (params.has('confirm')) {
     return <ConfirmationPage />;
+  }
+
+  if (params.get('settings') === 'benefits') {
+    return <BenefitManagementPage />;
+  }
+
+  if (params.has('settings')) {
+    return <SettingsPage />;
   }
 
   return <HomePage />;

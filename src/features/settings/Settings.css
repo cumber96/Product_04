@@ -1,0 +1,130 @@
+.settings {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.settings__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.settings__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.4rem 0.1rem;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.settings__title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.settings__section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+}
+
+.settings__app-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.settings__app-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border, #e5e4e7);
+  border-radius: 0.75rem;
+}
+
+.settings__app-row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings__app-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.settings__benefit-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--text);
+  opacity: 0.7;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.settings__toggle {
+  position: relative;
+  display: inline-flex;
+  width: 2.75rem;
+  height: 1.6rem;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.settings__toggle input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.settings__toggle-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--border, #e5e4e7);
+  transition: background 0.15s ease;
+}
+
+.settings__toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 0.15rem;
+  left: 0.15rem;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 50%;
+  background: var(--bg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease;
+}
+
+.settings__toggle input:checked ~ .settings__toggle-track {
+  background: var(--text);
+}
+
+.settings__toggle input:checked ~ .settings__toggle-track::after {
+  transform: translateX(1.15rem);
+}

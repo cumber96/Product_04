@@ -1,0 +1,65 @@
+.benefit-management__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.benefit-management__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border, #e5e4e7);
+  border-radius: 0.5rem;
+}
+
+.benefit-management__name {
+  font-size: 0.95rem;
+}
+
+.benefit-management__remove {
+  flex-shrink: 0;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #a83c34;
+  background: transparent;
+  border: 1px solid #a83c34;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.benefit-management__add {
+  flex-shrink: 0;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--bg);
+  background: var(--text);
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.benefit-management__add-entry {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  background: transparent;
+  border: 1px dashed var(--border, #e5e4e7);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.benefit-management__empty {
+  font-size: 0.9rem;
+  opacity: 0.7;
+  margin: 0 0 1rem;
+}
