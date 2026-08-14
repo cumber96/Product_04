@@ -1,6 +1,7 @@
 :root {
   --text: #08060d;
   --bg: #ffffff;
+  --page-padding-inline: 1.25rem;
   color-scheme: light dark;
   font: 16px/1.5 system-ui, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;

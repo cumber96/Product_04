@@ -2,20 +2,20 @@
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
-  padding: 1.5rem 1rem calc(env(safe-area-inset-bottom, 0px) + 8rem);
+  padding: 1.5rem var(--page-padding-inline) calc(env(safe-area-inset-bottom, 0px) + 8rem);
 }
 
-/* Fixed region anchoring the floating bar; itself takes no clicks so
-   content scrolling underneath (including inside the fade zone) stays
-   interactive — only the bar re-enables pointer-events. */
+/* Fixed region anchoring the fade layer to the true viewport bottom. The
+   floating bar itself is positioned independently (see
+   .home__action-bar) rather than via this container's box height, so its
+   on-screen offset never depends on scroll content or flex sizing. Takes
+   no clicks so content scrolling underneath (including inside the fade
+   zone) stays interactive — only the bar re-enables pointer-events. */
 .home__action-bar-region {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   pointer-events: none;
   z-index: 1;
 }
@@ -38,20 +38,28 @@
 }
 
 .home__action-bar {
-  position: relative;
+  /* Shared by the outer stroke and the center divider so they always read
+     as the same hierarchy level (see section 2 of the UI polish pass). */
+  --action-bar-stroke: color-mix(in srgb, var(--bg) 80%, var(--text) 20%);
+  /* Positioned directly against the viewport, independent of the region's
+     box or any scroll content, so its screen offset can't drift when
+     Home is scrolled to its end. */
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 2.5rem);
+  transform: translateX(-50%);
   display: flex;
   align-items: stretch;
-  width: calc(100% - 2rem);
-  max-width: 448px;
-  margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 2.5rem);
+  width: calc(100% - (var(--page-padding-inline) * 2));
+  max-width: calc(480px - (var(--page-padding-inline) * 2));
   overflow: hidden;
   border-radius: 999px;
   /* Falls back to the same neutral gray used for borders elsewhere if
      color-mix() isn't supported; otherwise a soft tint mixed from the
      existing --bg/--text tokens — no new color constant introduced. */
   background: var(--border, #e5e4e7);
-  background: color-mix(in srgb, var(--bg) 90%, var(--text) 8%);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  background: color-mix(in srgb, var(--bg) 94%, var(--text) 6%);
+  border: 1px solid var(--action-bar-stroke);
   pointer-events: auto;
 }
 
@@ -81,7 +89,7 @@
 .home__action-bar-divider {
   width: 1px;
   margin: 0.6rem 0;
-  background: var(--border, #e5e4e7);
+  background: var(--action-bar-stroke);
 }
 
 .home-summary {
