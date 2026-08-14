@@ -2,7 +2,12 @@
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
-  padding: 1.5rem var(--page-padding-inline) calc(env(safe-area-inset-bottom, 0px) + 8rem);
+  /* contentInsetAdjustmentBehavior = .never (see ProductWebView.swift)
+     removed WKWebView's automatic top inset too, so the top offset now
+     has to be made explicit here rather than relying on native
+     auto-adjustment — same reasoning as .settings' top padding. */
+  padding: calc(env(safe-area-inset-top, 0px) + 1.5rem) var(--page-padding-inline)
+    calc(env(safe-area-inset-bottom, 0px) + 8rem);
 }
 
 /* Sole owner of the floating bar's viewport-bottom position: fixed to the
