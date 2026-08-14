@@ -1,8 +1,8 @@
 import { HomePage } from './pages/HomePage';
 import { StepsPocPage } from './pages/StepsPocPage';
 import { ConfirmationPage } from './pages/ConfirmationPage';
-import { SettingsPage } from './pages/SettingsPage';
 import { BenefitManagementPage } from './pages/BenefitManagementPage';
+import { AppManagementPage } from './pages/AppManagementPage';
 
 function App() {
   const params = new URLSearchParams(window.location.search);
@@ -19,8 +19,8 @@ function App() {
     return <BenefitManagementPage />;
   }
 
-  if (params.has('settings')) {
-    return <SettingsPage />;
+  if (params.get('settings') === 'apps') {
+    return <AppManagementPage />;
   }
 
   return <HomePage />;

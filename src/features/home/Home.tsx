@@ -94,7 +94,7 @@ export function Home() {
           className="home__settings-button"
           aria-label="설정"
           onClick={() => {
-            window.location.href = '?settings';
+            window.location.href = '?settings=apps';
           }}
         >
           <svg

@@ -3,6 +3,7 @@ import { BENEFITS, BENEFIT_APPS } from '../../domain/benefits/catalog';
 import type { BenefitAppId } from '../../domain/benefits/types';
 import { getAddableBenefitsForApp, getMyBenefitsForApp } from '../../domain/benefits/myBenefits';
 import { useMyBenefits } from './useMyBenefits';
+import { ScreenHeader } from './ScreenHeader';
 import './Settings.css';
 import './BenefitManagement.css';
 
@@ -25,12 +26,7 @@ export function BenefitManagement({ appId }: { appId: BenefitAppId }) {
   if (mode === 'add') {
     return (
       <div className="settings">
-        <header className="settings__header">
-          <button type="button" className="settings__back" onClick={() => setMode('list')}>
-            <span aria-hidden="true">‹</span> 내 혜택으로
-          </button>
-          <h1 className="settings__title">{app.name} 혜택 추가</h1>
-        </header>
+        <ScreenHeader title={`${app.name} 혜택 추가`} onBack={() => setMode('list')} />
         {addableBenefits.length === 0 ? (
           <p className="benefit-management__empty">추가할 수 있는 혜택이 없습니다.</p>
         ) : (
@@ -55,18 +51,12 @@ export function BenefitManagement({ appId }: { appId: BenefitAppId }) {
 
   return (
     <div className="settings">
-      <header className="settings__header">
-        <button
-          type="button"
-          className="settings__back"
-          onClick={() => {
-            window.location.href = '?settings';
-          }}
-        >
-          <span aria-hidden="true">‹</span> 설정으로
-        </button>
-        <h1 className="settings__title">{app.name} 혜택 관리</h1>
-      </header>
+      <ScreenHeader
+        title={`${app.name} 혜택 관리`}
+        onBack={() => {
+          window.location.href = '?settings=apps';
+        }}
+      />
       <section className="settings__section">
         <h2 className="settings__section-title">내 혜택</h2>
         {myBenefits.length === 0 ? (

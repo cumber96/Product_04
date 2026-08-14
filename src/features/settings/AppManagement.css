@@ -1,0 +1,111 @@
+.app-management__segmented {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  margin-bottom: 1.5rem;
+  background: var(--border, #e5e4e7);
+  border-radius: 0.75rem;
+}
+
+.app-management__segment {
+  flex: 1;
+  padding: 0.55rem 0.5rem;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  opacity: 0.6;
+  background: transparent;
+  border: none;
+  border-radius: 0.6rem;
+  cursor: pointer;
+}
+
+.app-management__segment--active {
+  opacity: 1;
+  background: var(--bg);
+}
+
+.app-management__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.app-management__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border, #e5e4e7);
+  border-radius: 0.75rem;
+}
+
+.app-management__row-name {
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.app-management__row-name--static {
+  cursor: default;
+}
+
+.app-management__action {
+  flex-shrink: 0;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border, #e5e4e7);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.app-management__action--add {
+  color: var(--bg);
+  background: var(--text);
+  border: none;
+}
+
+.app-management__order-controls {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.app-management__order-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border, #e5e4e7);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.app-management__order-button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.app-management__empty {
+  font-size: 0.9rem;
+  opacity: 0.7;
+  margin: 0 0 1rem;
+}
