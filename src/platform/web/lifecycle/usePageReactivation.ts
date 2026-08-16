@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ensureDailyReset } from '../dailyReset/ensureDailyReset';
 
 /**
  * Bumps a counter whenever this page becomes usable again without having
@@ -19,6 +20,11 @@ export function usePageReactivation(): number {
 
   useEffect(() => {
     function bump() {
+      // Must run before the tick bumps: consumers key their storage re-reads
+      // off this tick, so daily state has to already be reset in storage by
+      // the time they re-render (see features/home/useBenefitStatuses.ts,
+      // features/home/useEligibleToday.ts).
+      ensureDailyReset();
       setTick((prev) => prev + 1);
     }
     function handleVisibilityChange() {

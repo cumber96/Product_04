@@ -23,3 +23,17 @@ export function markConfirmationShown(): void {
     // won't remember it fired; not fatal.
   }
 }
+
+/**
+ * Called by daily reset (see platform/web/dailyReset/ensureDailyReset.ts) so
+ * a session that survives past local midnight — plausible for a
+ * backgrounded iOS PWA/WKWebView process — doesn't suppress auto-show for a
+ * new day just because it already fired yesterday.
+ */
+export function clearConfirmationShown(): void {
+  try {
+    sessionStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // sessionStorage unavailable — nothing to clear.
+  }
+}

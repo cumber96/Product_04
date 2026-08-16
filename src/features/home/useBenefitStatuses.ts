@@ -32,6 +32,16 @@ export function useBenefitStatuses(myBenefits: Benefit[]) {
     saveCompletedBenefitIds(completedBenefitIds);
   }, [completedBenefitIds]);
 
+  // useState's initializer only reads storage once, at mount — it never
+  // sees a daily reset that lands later (see platform/web/dailyReset/
+  // ensureDailyReset.ts, run from usePageReactivation before reactivationTick
+  // bumps). Re-reading here on every reactivation is what actually surfaces
+  // that reset in this page's state instead of leaving yesterday's
+  // completedBenefitIds on screen until a hard reload.
+  useEffect(() => {
+    setCompletedBenefitIds(loadCompletedBenefitIds());
+  }, [reactivationTick]);
+
   // Accumulates met benefits into EligibleTodayRecord as a side effect.
   // Does not feed into statusMap/summary below — those stay driven purely
   // by the live baseline + completed set, unchanged from before.

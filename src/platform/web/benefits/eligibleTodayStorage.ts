@@ -38,3 +38,14 @@ export function loadEligibleTodayRecord(
 export function saveEligibleTodayRecord(record: EligibleTodayRecord): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
 }
+
+/**
+ * Reads the stored record's date field as-is, without the "stale record ->
+ * today, empty" lazy-reset that loadEligibleTodayRecord applies. Used only
+ * by daily-reset migration (see domain/date/dailyReset.ts) to tell "no
+ * record at all" apart from "a record from a previous day" without that
+ * resolution already collapsing both to the same thing.
+ */
+export function peekStoredEligibleTodayDate(): string | null {
+  return loadRaw()?.date ?? null;
+}

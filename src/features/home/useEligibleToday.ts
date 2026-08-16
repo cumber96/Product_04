@@ -24,12 +24,19 @@ export function useEligibleToday(currentSteps: number | null, reactivationTick: 
 
   useEffect(() => {
     const now = new Date();
-    const metBenefitIds = getMetConditionBenefitIds(BENEFITS, { currentSteps, now });
-    if (metBenefitIds.length === 0) return;
-
     const today = getLocalDateString(now);
+    const metBenefitIds = getMetConditionBenefitIds(BENEFITS, { currentSteps, now });
+
     setRecord((prev) => {
+      // Date check first, unconditionally — otherwise a local-day rollover
+      // with nothing newly met (metBenefitIds empty) would return early
+      // above before ever comparing prev.date, leaving yesterday's
+      // benefitIds in state and on screen (see platform/web/dailyReset/
+      // ensureDailyReset.ts, which has already reset storage by the time
+      // this runs but doesn't touch this component's in-memory state).
       const base = prev.date === today ? prev : loadEligibleTodayRecord(today);
+      if (metBenefitIds.length === 0) return base;
+
       const next = unionEligibleTodayBenefitIds(base, metBenefitIds);
       if (next !== base) {
         saveEligibleTodayRecord(next);
