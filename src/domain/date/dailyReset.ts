@@ -1,8 +1,8 @@
 /**
  * Pure decision logic for whether a new local day has started and daily
- * state (completedBenefitIds, eligibleToday, confirmation-shown) needs to be
- * wiped. Takes no storage dependency itself — callers pass in whatever they
- * already loaded so this stays trivially testable.
+ * state (completedBenefitIds, eligibleToday, pendingConfirmations) needs to
+ * be wiped. Takes no storage dependency itself — callers pass in whatever
+ * they already loaded so this stays trivially testable.
  */
 export interface DailyResetInput {
   /** product04:last-active-date, or null if the key has never been written. */
@@ -19,7 +19,7 @@ export interface DailyResetInput {
 }
 
 export interface DailyResetResult {
-  /** Whether completed/eligibleToday/confirmation-shown should be wiped. */
+  /** Whether completed/eligibleToday/pendingConfirmations should be wiped. */
   shouldReset: boolean;
   /** Whether product04:last-active-date needs to be (re)written. */
   shouldStampDate: boolean;

@@ -4,13 +4,18 @@ struct ContentView: View {
     @StateObject private var healthKitManager = HealthKitManager()
     @State private var productURL: URL?
     @State private var urlBuildErrorMessage: String?
+    @Environment(\.scenePhase) private var scenePhase
+    /// Bumped every time the app returns to the foreground, independent of
+    /// whether the WKWebView's own visibilitychange/pageshow DOM events
+    /// fire — see ProductWebView.foregroundTick.
+    @State private var foregroundTick = 0
 
     private let productionBaseURL = URL(string: "https://product-04.nowgnoheel.workers.dev/")!
 
     var body: some View {
         Group {
             if let productURL {
-                ProductWebView(url: productURL)
+                ProductWebView(url: productURL, foregroundTick: foregroundTick)
                     .ignoresSafeArea()
             } else {
                 VStack(spacing: 16) {
@@ -41,6 +46,11 @@ struct ContentView: View {
         .onChange(of: healthKitManager.state) { _, newState in
             if case .loaded(let total, let iphone) = newState {
                 productURL = buildProductURL(total: total, iphone: iphone)
+            }
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                foregroundTick += 1
             }
         }
     }

@@ -9,7 +9,17 @@ import WidgetKit
 /// cancelled in the WebView itself.
 struct ProductWebView: UIViewRepresentable {
     let url: URL
-    
+    /// Bumped by ContentView on scenePhase → .active. WKWebView's own
+    /// visibilitychange/pageshow DOM events are the web-side reactivation
+    /// signal (see usePageReactivation.ts) but aren't fully reliable after
+    /// backgrounding via a custom URL scheme handoff (e.g. supertoss://) —
+    /// this is a native-side fallback/complement that dispatches the same
+    /// kind of signal directly into the page via JS, so Confirmation's
+    /// pending check still runs even if the DOM events don't fire. The web
+    /// side treats it as just another trigger and already dedupes repeated
+    /// triggers for the same pending, so firing both is harmless.
+    var foregroundTick: Int = 0
+
     func makeCoordinator() -> Coordinator {
         Coordinator()
     }
@@ -36,15 +46,26 @@ struct ProductWebView: UIViewRepresentable {
         #endif
         webView.navigationDelegate = context.coordinator
         webView.load(URLRequest(url: url))
+        context.coordinator.lastForegroundTick = foregroundTick
         return webView
     }
 
     func updateUIView(_ webView: WKWebView, context: Context) {
+        if context.coordinator.lastForegroundTick != foregroundTick {
+            context.coordinator.lastForegroundTick = foregroundTick
+            webView.evaluateJavaScript(
+                "window.dispatchEvent(new Event('product04:foreground'))",
+                completionHandler: nil
+            )
+        }
+
         guard webView.url != url else { return }
         webView.load(URLRequest(url: url))
     }
 
     final class Coordinator: NSObject, WKNavigationDelegate {
+        var lastForegroundTick = 0
+
         func webView(
             _ webView: WKWebView,
             decidePolicyFor navigationAction: WKNavigationAction,

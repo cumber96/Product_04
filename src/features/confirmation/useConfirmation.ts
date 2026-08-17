@@ -1,14 +1,17 @@
 import { useMemo, useState } from 'react';
 import { BENEFIT_APPS, BENEFITS } from '../../domain/benefits/catalog';
-import type { Benefit, BenefitApp } from '../../domain/benefits/types';
+import type { Benefit, BenefitApp, BenefitAppId } from '../../domain/benefits/types';
 import { applyConfirmation } from '../../domain/benefits/confirmation';
-import { getConfirmationCandidateBenefitIds } from '../../domain/benefits/eligibleToday';
+import { clearAppPendingConfirmation } from '../../domain/benefits/pendingConfirmation';
 import { getEnabledApps } from '../../domain/benefits/enabledApps';
 import { getMyBenefitIds } from '../../domain/benefits/myBenefits';
 import { getOrderedApps } from '../../domain/benefits/appOrder';
 import { getOrderedBenefits } from '../../domain/benefits/benefitOrder';
 import { getLocalDateString } from '../../domain/date/localDate';
-import { loadEligibleTodayRecord } from '../../platform/web/benefits/eligibleTodayStorage';
+import {
+  loadPendingConfirmations,
+  savePendingConfirmations,
+} from '../../platform/web/benefits/pendingConfirmationStorage';
 import {
   loadCompletedBenefitIds,
   saveCompletedBenefitIds,
@@ -24,16 +27,19 @@ export interface ConfirmationAppGroup {
 }
 
 /**
- * Confirmation candidates = eligibleTodayBenefitIds - completedBenefitIds,
- * scoped to the benefits the user currently tracks (enabled app AND kept in
- * myBenefitIds — see domain/benefits/myBenefits.ts). Deliberately does not
- * touch AppLaunchSnapshot or recompute the live locked/available statusMap
- * — those are separate concerns (audit log and Home's real-time display,
- * respectively), not candidate sources here. eligibleTodayBenefitIds itself
- * is loaded and used as-is (never filtered in storage) — anything currently
- * out of scope just doesn't make it into candidateBenefits below.
+ * Confirmation candidates now come from persistent pending confirmations
+ * (see domain/benefits/pendingConfirmation.ts) — benefits that were
+ * actually 'available' the moment a financial app was launched — never
+ * from eligibleToday (anything merely met at some point today, whether or
+ * not the app was ever visited). Scoped to benefits the user currently
+ * tracks (enabled app AND kept in myBenefitIds) and not yet completed.
+ *
+ * `appId` narrows to one app's pending — used by the Home-triggered sheet,
+ * which shows at most one app at a time. Omitting it (the standalone
+ * /?confirm page) shows every enabled app's pending, unchanged from how
+ * that page worked before this shifted to pending-based candidates.
  */
-export function useConfirmation() {
+export function useConfirmation(appId?: BenefitAppId) {
   const enabledAppIds = useMemo(() => new Set(loadEnabledAppIds()), []);
   const myBenefitIds = useMemo(() => new Set(loadMyBenefitIds()), []);
   const appOrder = useMemo(() => loadAppOrder(), []);
@@ -48,33 +54,32 @@ export function useConfirmation() {
     [enabledAppIds, myBenefitIds],
   );
 
-  const eligibleTodayBenefitIds = useMemo(
-    () =>
-      loadEligibleTodayRecord(getLocalDateString()).benefitIds.filter((id) =>
-        myBenefitIdSet.has(id),
-      ),
-    [myBenefitIdSet],
-  );
+  const today = useMemo(() => getLocalDateString(), []);
+  const pendingByApp = useMemo(() => loadPendingConfirmations(today), [today]);
   const completedBenefitIds = useMemo(() => loadCompletedBenefitIds(), []);
 
-  const candidateBenefits = useMemo(() => {
-    const candidateIds = new Set(
-      getConfirmationCandidateBenefitIds(eligibleTodayBenefitIds, completedBenefitIds),
-    );
-    return getOrderedBenefits(
-      BENEFITS.filter((benefit) => candidateIds.has(benefit.id)),
-      benefitOrder,
-    );
-  }, [eligibleTodayBenefitIds, completedBenefitIds, benefitOrder]);
-
-  const groups = useMemo<ConfirmationAppGroup[]>(
-    () =>
-      enabledApps.map((app) => ({
-        app,
-        benefits: candidateBenefits.filter((benefit) => benefit.appId === app.id),
-      })).filter((group) => group.benefits.length > 0),
-    [enabledApps, candidateBenefits],
+  const targetApps = useMemo(
+    () => (appId ? enabledApps.filter((app) => app.id === appId) : enabledApps),
+    [appId, enabledApps],
   );
+
+  const groups = useMemo<ConfirmationAppGroup[]>(() => {
+    return targetApps
+      .map((app) => {
+        const record = pendingByApp[app.id];
+        const candidateIds = new Set(
+          (record?.benefitIds ?? []).filter(
+            (id) => myBenefitIdSet.has(id) && !completedBenefitIds.has(id),
+          ),
+        );
+        const benefits = getOrderedBenefits(
+          BENEFITS.filter((benefit) => candidateIds.has(benefit.id)),
+          benefitOrder,
+        );
+        return { app, benefits };
+      })
+      .filter((group) => group.benefits.length > 0);
+  }, [targetApps, pendingByApp, myBenefitIdSet, completedBenefitIds, benefitOrder]);
 
   const [selectedBenefitIds, setSelectedBenefitIds] = useState<Set<string>>(new Set());
 
@@ -90,9 +95,24 @@ export function useConfirmation() {
     });
   }
 
+  /**
+   * Checked benefits fold into completedBenefitIds (unchanged logic). Every
+   * app shown in this Confirmation instance has its pending confirmation
+   * cleared entirely — regardless of which of its benefits were actually
+   * checked — since "확인 완료" means this app's visit has been handled;
+   * an unchecked benefit stays tracked via the live statusMap/completed set
+   * exactly as before, it just isn't asked about again for this visit.
+   */
   function confirm(): Set<string> {
     const updated = applyConfirmation(loadCompletedBenefitIds(), [...selectedBenefitIds]);
     saveCompletedBenefitIds(updated);
+
+    let pending = loadPendingConfirmations(today);
+    for (const group of groups) {
+      pending = clearAppPendingConfirmation(pending, group.app.id);
+    }
+    savePendingConfirmations(pending);
+
     return updated;
   }
 

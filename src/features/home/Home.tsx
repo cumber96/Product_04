@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BENEFIT_APPS, BENEFITS } from '../../domain/benefits/catalog';
 import { getVisibleBenefitGroups } from '../../domain/benefits/benefitStatusStore';
-import { getConfirmationCandidateBenefitIds } from '../../domain/benefits/eligibleToday';
 import { getEnabledApps } from '../../domain/benefits/enabledApps';
-import { getMyBenefitIds, getMyBenefits } from '../../domain/benefits/myBenefits';
+import { getMyBenefits } from '../../domain/benefits/myBenefits';
 import { getOrderedApps } from '../../domain/benefits/appOrder';
 import { getOrderedBenefits } from '../../domain/benefits/benefitOrder';
 import { loadBenefitOrder } from '../../platform/web/benefits/benefitOrderStorage';
@@ -42,49 +41,45 @@ export function Home() {
     () => getOrderedBenefits(getMyBenefits(BENEFITS, enabledAppIds, myBenefitIds), benefitOrder),
     [enabledAppIds, myBenefitIds, benefitOrder],
   );
-  const myBenefitIdSet = useMemo(
-    () => getMyBenefitIds(BENEFITS, enabledAppIds, myBenefitIds),
-    [enabledAppIds, myBenefitIds],
-  );
 
   const {
     statusMap,
     summary,
-    completedBenefitIds,
     setCompletedBenefitIds,
-    eligibleTodayBenefitIds,
+    pending,
+    totalPendingBenefitCount,
     expiredBenefitIds,
   } = useBenefitStatuses(myBenefits);
   const { launchApp } = useAppLaunch(statusMap);
   // Expired (time window closed today, e.g. morning once it's afternoon)
   // benefits are dropped before grouping, so Home never lists them as
-  // still-lockable. eligibleToday/completed/Confirmation are unaffected —
+  // still-lockable. pending/completed/Confirmation are unaffected —
   // expiredBenefitIds only shapes what Home displays.
   const visibleBenefits = myBenefits.filter((benefit) => !expiredBenefitIds.has(benefit.id));
   const groups = getVisibleBenefitGroups(enabledApps, visibleBenefits, statusMap);
-  // eligibleTodayBenefitIds itself is never filtered/mutated — a benefit
-  // dropped from myBenefitIds (or its app disabled) stays recorded so
-  // bringing it back later restores the correct state. Only this
-  // locally-scoped list (what counts toward "미확인 혜택" right now)
-  // excludes what's currently out of scope.
-  const myEligibleTodayBenefitIds = eligibleTodayBenefitIds.filter((id) =>
-    myBenefitIdSet.has(id),
-  );
-  const pendingConfirmationCount = getConfirmationCandidateBenefitIds(
-    myEligibleTodayBenefitIds,
-    completedBenefitIds,
-  ).length;
 
-  // useAutoConfirmation only ever flips true, at most once per session — it
-  // is purely a trigger to open the sheet, not the sheet's open/close state
-  // itself, so the sheet can still be closed and reopened manually after.
-  const showAutoConfirmation = useAutoConfirmation(pendingConfirmationCount);
+  // Confirmation shows one app at a time — the first (app-ordered) app
+  // that still has an unconfirmed pending. Completing or dismissing it
+  // never removes other apps' pending (see domain/benefits/
+  // pendingConfirmation.ts), so the next one naturally becomes "next"
+  // once this one is cleared.
+  const nextPending = pending[0] ?? null;
+
+  // Bumps only when a genuinely new pending (new app, or the same app
+  // re-launched) should get its own chance to auto-open — see
+  // useAutoConfirmation. Not tied to eligibleToday, session, or calendar
+  // day; the sheet can still be closed and reopened manually afterward via
+  // the recovery entry below.
+  const autoConfirmationToken = useAutoConfirmation(
+    nextPending?.appId ?? null,
+    nextPending?.launchedAt ?? null,
+  );
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   useEffect(() => {
-    if (showAutoConfirmation) {
+    if (autoConfirmationToken > 0) {
       setIsSheetOpen(true);
     }
-  }, [showAutoConfirmation]);
+  }, [autoConfirmationToken]);
 
   function handleConfirmed(updatedCompletedBenefitIds: Set<string>) {
     setIsSheetOpen(false);
@@ -94,13 +89,13 @@ export function Home() {
   return (
     <div className="home">
       <HomeSummary summary={summary} />
-      {pendingConfirmationCount > 0 && (
+      {totalPendingBenefitCount > 0 && (
         <button
           type="button"
           className="home__pending-entry"
           onClick={() => setIsSheetOpen(true)}
         >
-          <span>미확인 혜택 {pendingConfirmationCount}개 확인하기</span>
+          <span>미확인 혜택 {totalPendingBenefitCount}개 확인하기</span>
           <span aria-hidden="true">›</span>
         </button>
       )}
@@ -109,8 +104,12 @@ export function Home() {
           <BenefitAppSection key={group.app.id} group={group} onLaunch={launchApp} />
         ))}
       </div>
-      {isSheetOpen && (
-        <ConfirmationSheet onClose={() => setIsSheetOpen(false)} onConfirmed={handleConfirmed} />
+      {isSheetOpen && nextPending && (
+        <ConfirmationSheet
+          appId={nextPending.appId}
+          onClose={() => setIsSheetOpen(false)}
+          onConfirmed={handleConfirmed}
+        />
       )}
       <div className="home__floating-action-container">
         <div className="home__action-bar-fade" aria-hidden="true" />

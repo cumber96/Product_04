@@ -10,7 +10,7 @@ import {
   saveCompletedBenefitIds,
 } from '../../platform/web/benefits/benefitStatusStorage';
 import { postWidgetSnapshot } from '../../platform/web/widget/postWidgetSnapshot';
-import { useEligibleToday } from './useEligibleToday';
+import { usePendingConfirmations } from './usePendingConfirmations';
 
 /**
  * myBenefits scopes the summary total/available and the widget's
@@ -21,7 +21,7 @@ import { useEligibleToday } from './useEligibleToday';
  */
 export function useBenefitStatuses(myBenefits: Benefit[]) {
   // Ticks when the page becomes usable again without having reloaded (see
-  // usePageReactivation) — re-derives steps/baseline/eligibleToday below so
+  // usePageReactivation) — re-derives steps/baseline/pending below so
   // returning from a financial app re-evaluates local time/date and steps,
   // not just whatever was true at the original mount.
   const reactivationTick = usePageReactivation();
@@ -42,11 +42,6 @@ export function useBenefitStatuses(myBenefits: Benefit[]) {
     setCompletedBenefitIds(loadCompletedBenefitIds());
   }, [reactivationTick]);
 
-  // Accumulates met benefits into EligibleTodayRecord as a side effect.
-  // Does not feed into statusMap/summary below — those stay driven purely
-  // by the live baseline + completed set, unchanged from before.
-  const eligibleTodayBenefitIds = useEligibleToday(totalSteps, iphoneSteps, reactivationTick);
-
   const baselineStatus = useMemo(
     () => computeBaselineStatus(BENEFITS, { steps: totalSteps, iphoneSteps }),
     [totalSteps, iphoneSteps, reactivationTick],
@@ -54,7 +49,7 @@ export function useBenefitStatuses(myBenefits: Benefit[]) {
 
   // Home-display-only: benefits whose time window has fully closed today
   // (currently just morning, once it's afternoon). Does not feed
-  // baselineStatus/eligibleToday — see getExpiredBenefitIds.
+  // baselineStatus — see getExpiredBenefitIds.
   const expiredBenefitIds = useMemo(
     () => new Set(getExpiredBenefitIds(BENEFITS)),
     [reactivationTick],
@@ -63,6 +58,16 @@ export function useBenefitStatuses(myBenefits: Benefit[]) {
   const statusMap = useMemo(
     () => computeStatusMap(BENEFITS, baselineStatus, completedBenefitIds),
     [baselineStatus, completedBenefitIds],
+  );
+
+  // Persistent pending confirmations (see domain/benefits/pendingConfirmation.ts)
+  // — replaces eligibleToday as Confirmation's/Home's source of truth. Does
+  // not feed statusMap/summary/baselineStatus above; those stay driven
+  // purely by the live baseline + completed set, unchanged from before.
+  const { pending, totalPendingBenefitCount } = usePendingConfirmations(
+    myBenefits,
+    completedBenefitIds,
+    reactivationTick,
   );
 
   const summary = useMemo(
@@ -91,7 +96,8 @@ export function useBenefitStatuses(myBenefits: Benefit[]) {
     summary,
     completedBenefitIds,
     setCompletedBenefitIds,
-    eligibleTodayBenefitIds,
+    pending,
+    totalPendingBenefitCount,
     expiredBenefitIds,
   };
 }
