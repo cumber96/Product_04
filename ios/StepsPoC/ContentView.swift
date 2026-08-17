@@ -39,18 +39,28 @@ struct ContentView: View {
             healthKitManager.fetchTodaySteps()
         }
         .onChange(of: healthKitManager.state) { _, newState in
-            if case .loaded(let steps) = newState {
-                productURL = buildProductURL(withSteps: steps)
+            if case .loaded(let total, let iphone) = newState {
+                productURL = buildProductURL(total: total, iphone: iphone)
             }
         }
     }
 
-    private func buildProductURL(withSteps steps: Int) -> URL? {
+    /// Extends the existing `?steps=<total>` contract additively with
+    /// `&iphoneSteps=<iphone>` — `steps` keeps its original meaning/format
+    /// unchanged. `iphoneSteps` is only appended when available, so a build
+    /// that can't confidently resolve it produces the exact same URL as
+    /// before this field existed.
+    private func buildProductURL(total: Int, iphone: Int?) -> URL? {
         guard var components = URLComponents(url: productionBaseURL, resolvingAgainstBaseURL: false) else {
             urlBuildErrorMessage = "Product 04 URL을 구성할 수 없습니다."
             return nil
         }
-        components.queryItems = [URLQueryItem(name: "steps", value: String(steps))]
+
+        var queryItems = [URLQueryItem(name: "steps", value: String(total))]
+        if let iphone {
+            queryItems.append(URLQueryItem(name: "iphoneSteps", value: String(iphone)))
+        }
+        components.queryItems = queryItems
 
         guard let url = components.url else {
             urlBuildErrorMessage = "Product 04 URL을 구성할 수 없습니다."
@@ -67,8 +77,8 @@ struct ContentView: View {
         case .idle, .loading:
             ProgressView()
                 .frame(height: 60)
-        case .loaded(let steps):
-            Text("\(formatted(steps))보")
+        case .loaded(let total, _):
+            Text("\(formatted(total))보")
                 .font(.system(size: 48, weight: .bold))
         case .error(let message):
             Text(message)

@@ -25,7 +25,7 @@ export function useBenefitStatuses(myBenefits: Benefit[]) {
   // returning from a financial app re-evaluates local time/date and steps,
   // not just whatever was true at the original mount.
   const reactivationTick = usePageReactivation();
-  const currentSteps = useLatestSteps(reactivationTick);
+  const { steps: totalSteps, iphoneSteps } = useLatestSteps(reactivationTick);
   const [completedBenefitIds, setCompletedBenefitIds] = useState(loadCompletedBenefitIds);
 
   useEffect(() => {
@@ -45,11 +45,11 @@ export function useBenefitStatuses(myBenefits: Benefit[]) {
   // Accumulates met benefits into EligibleTodayRecord as a side effect.
   // Does not feed into statusMap/summary below — those stay driven purely
   // by the live baseline + completed set, unchanged from before.
-  const eligibleTodayBenefitIds = useEligibleToday(currentSteps, reactivationTick);
+  const eligibleTodayBenefitIds = useEligibleToday(totalSteps, iphoneSteps, reactivationTick);
 
   const baselineStatus = useMemo(
-    () => computeBaselineStatus(BENEFITS, { currentSteps }),
-    [currentSteps, reactivationTick],
+    () => computeBaselineStatus(BENEFITS, { steps: totalSteps, iphoneSteps }),
+    [totalSteps, iphoneSteps, reactivationTick],
   );
 
   // Home-display-only: benefits whose time window has fully closed today

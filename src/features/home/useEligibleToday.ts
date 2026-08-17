@@ -13,19 +13,23 @@ import {
  * daily, morning, afternoon, monthly-last-day) into EligibleTodayRecord.
  * Only ever adds ids — a condition that stops being met later in the same
  * local day (steps dropping, morning turning to afternoon) never removes an
- * id already recorded today. Runs on mount, whenever ?steps= changes, and
- * whenever reactivationTick bumps (see usePageReactivation) — the last one
- * is what re-evaluates purely time-based conditions (morning → afternoon,
- * today → the month's last day) when the user returns to a page that was
- * never unloaded, since currentSteps alone wouldn't change in that case.
+ * id already recorded today. Runs on mount, whenever ?steps=/&iphoneSteps=
+ * changes, and whenever reactivationTick bumps (see usePageReactivation) —
+ * the last one is what re-evaluates purely time-based conditions (morning →
+ * afternoon, today → the month's last day) when the user returns to a page
+ * that was never unloaded, since steps alone wouldn't change in that case.
  */
-export function useEligibleToday(currentSteps: number | null, reactivationTick: number): string[] {
+export function useEligibleToday(
+  steps: number | null,
+  iphoneSteps: number | null,
+  reactivationTick: number,
+): string[] {
   const [record, setRecord] = useState(() => loadEligibleTodayRecord());
 
   useEffect(() => {
     const now = new Date();
     const today = getLocalDateString(now);
-    const metBenefitIds = getMetConditionBenefitIds(BENEFITS, { currentSteps, now });
+    const metBenefitIds = getMetConditionBenefitIds(BENEFITS, { steps, iphoneSteps, now });
 
     setRecord((prev) => {
       // Date check first, unconditionally — otherwise a local-day rollover
@@ -43,7 +47,7 @@ export function useEligibleToday(currentSteps: number | null, reactivationTick: 
       }
       return next;
     });
-  }, [currentSteps, reactivationTick]);
+  }, [steps, iphoneSteps, reactivationTick]);
 
   return record.benefitIds;
 }

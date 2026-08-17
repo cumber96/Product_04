@@ -1,19 +1,24 @@
 import type { Benefit, BenefitCondition, BenefitStatusMap } from './types';
 import { getLocalTimeOfDay } from '../date/timeOfDay';
 import { isLastDayOfMonth } from '../date/isLastDayOfMonth';
+import { resolveStepsForApp, type StepsByPlatform } from './resolveStepsForApp';
 
-export interface BenefitConditionContext {
-  currentSteps: number | null;
+export interface BenefitConditionContext extends StepsByPlatform {
   now?: Date;
 }
 
 /**
  * Whether a single condition is met right now, using the user's local
- * time/date (never UTC). currentSteps === null locks every steps benefit
- * rather than treating it as 0 met-or-not, keeping "no data" distinct from
- * "0 steps" for future callers.
+ * time/date (never UTC). For a 'steps' condition, which steps value counts
+ * depends on the benefit's app (see resolveStepsForApp) — a null result
+ * from that (no data for either steps value) locks the benefit rather than
+ * treating it as 0 met-or-not, keeping "no data" distinct from "0 steps".
  */
-function isConditionMetNow(condition: BenefitCondition, context: BenefitConditionContext): boolean {
+function isConditionMetNow(
+  condition: BenefitCondition,
+  appId: Benefit['appId'],
+  context: BenefitConditionContext,
+): boolean {
   const now = context.now ?? new Date();
   switch (condition.type) {
     case 'daily':
@@ -24,12 +29,14 @@ function isConditionMetNow(condition: BenefitCondition, context: BenefitConditio
       return getLocalTimeOfDay(now) === 'afternoon';
     case 'monthly-last-day':
       return isLastDayOfMonth(now);
-    case 'steps':
+    case 'steps': {
+      const relevantSteps = resolveStepsForApp(appId, context);
       return (
         condition.steps !== undefined &&
-        context.currentSteps !== null &&
-        context.currentSteps >= condition.steps
+        relevantSteps !== null &&
+        relevantSteps >= condition.steps
       );
+    }
   }
 }
 
@@ -44,7 +51,7 @@ export function computeBaselineStatus(
 ): BenefitStatusMap {
   const statusMap: BenefitStatusMap = {};
   for (const benefit of benefits) {
-    statusMap[benefit.id] = isConditionMetNow(benefit.condition, context) ? 'available' : 'locked';
+    statusMap[benefit.id] = isConditionMetNow(benefit.condition, benefit.appId, context) ? 'available' : 'locked';
   }
   return statusMap;
 }
@@ -58,7 +65,7 @@ export function getMetConditionBenefitIds(
   context: BenefitConditionContext,
 ): string[] {
   return benefits
-    .filter((benefit) => isConditionMetNow(benefit.condition, context))
+    .filter((benefit) => isConditionMetNow(benefit.condition, benefit.appId, context))
     .map((benefit) => benefit.id);
 }
 
