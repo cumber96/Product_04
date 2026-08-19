@@ -7,21 +7,48 @@ struct BenefitEntry: TimelineEntry {
     let pendingBenefitCount: Int?
 }
 
-/// No periodic refresh — ProductWebView calls WidgetCenter.reloadTimelines
-/// every time the web app's available-benefit count changes, so a single
-/// entry with policy .never is enough; iOS just re-renders it on request.
+/// ProductWebView calls WidgetCenter.reloadTimelines every time the web
+/// app's available-benefit count changes, so that stays the primary path
+/// while the app is running. But a stored snapshot never rewrites itself
+/// across a midnight rollover on its own, so this also self-schedules a
+/// refresh for the next local midnight (see nextMidnight(after:)) and
+/// discards the count if the snapshot's date has fallen behind today (see
+/// resolvedPendingBenefitCount) — together these keep the Lock Screen
+/// correct even if the app is never opened after the date changes.
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> BenefitEntry {
         BenefitEntry(date: Date(), pendingBenefitCount: 3)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (BenefitEntry) -> Void) {
-        completion(BenefitEntry(date: Date(), pendingBenefitCount: WidgetSnapshotStore.loadPendingBenefitCount()))
+        completion(BenefitEntry(date: Date(), pendingBenefitCount: resolvedPendingBenefitCount()))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<BenefitEntry>) -> Void) {
-        let entry = BenefitEntry(date: Date(), pendingBenefitCount: WidgetSnapshotStore.loadPendingBenefitCount())
-        completion(Timeline(entries: [entry], policy: .never))
+        let now = Date()
+        let entry = BenefitEntry(date: now, pendingBenefitCount: resolvedPendingBenefitCount(now: now))
+        completion(Timeline(entries: [entry], policy: .after(nextMidnight(after: now))))
+    }
+
+    /// nil (no snapshot yet) is passed through unchanged. Otherwise the
+    /// snapshot is only trusted when its updatedAt falls on the same local
+    /// calendar day as `now` — a snapshot from yesterday or earlier reports
+    /// 0 instead of the stale count.
+    private func resolvedPendingBenefitCount(now: Date = Date()) -> Int? {
+        guard let count = WidgetSnapshotStore.loadPendingBenefitCount() else { return nil }
+        guard let updatedAt = WidgetSnapshotStore.loadUpdatedAt(),
+              Calendar.current.isDate(updatedAt, inSameDayAs: now) else {
+            return 0
+        }
+        return count
+    }
+
+    /// Calendar-based (not `+86400`) so this lands on the correct wall-clock
+    /// midnight across DST transitions and any time zone.
+    private func nextMidnight(after date: Date) -> Date {
+        let calendar = Calendar.current
+        let startOfToday = calendar.startOfDay(for: date)
+        return calendar.date(byAdding: .day, value: 1, to: startOfToday) ?? startOfToday.addingTimeInterval(86_400)
     }
 }
 

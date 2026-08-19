@@ -16,6 +16,18 @@ enum WidgetSnapshotStore {
         UserDefaults(suiteName: appGroupID)
     }
 
+    // web's `new Date().toISOString()` always includes millisecond
+    // fractional seconds (e.g. "2026-08-19T00:12:34.567Z"), which the
+    // no-options ISO8601DateFormatter rejects — try fractional-seconds
+    // first, then fall back for any value written without them.
+    private static let isoFormatterWithFractionalSeconds: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+
+    private static let isoFormatter = ISO8601DateFormatter()
+
     static func save(pendingBenefitCount: Int, updatedAt: String) {
         guard let defaults else { return }
         defaults.set(pendingBenefitCount, forKey: pendingBenefitCountKey)
@@ -29,5 +41,15 @@ enum WidgetSnapshotStore {
             return nil
         }
         return defaults.integer(forKey: pendingBenefitCountKey)
+    }
+
+    /// nil means either no snapshot has ever been saved, or the stored
+    /// string couldn't be parsed as ISO8601 — callers should treat both the
+    /// same way (don't trust pendingBenefitCount's freshness).
+    static func loadUpdatedAt() -> Date? {
+        guard let defaults, let raw = defaults.string(forKey: updatedAtKey) else {
+            return nil
+        }
+        return isoFormatterWithFractionalSeconds.date(from: raw) ?? isoFormatter.date(from: raw)
     }
 }
