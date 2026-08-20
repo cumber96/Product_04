@@ -1,4 +1,13 @@
 export interface StoredSteps {
+  /**
+   * Local-calendar date (see domain/date/localDate.ts) this record's steps
+   * were delivered on. Callers must compare this against today before
+   * trusting steps/iphoneSteps as a same-day fallback — see useLatestSteps.
+   * '' for records written before this field existed (see loadStoredSteps);
+   * '' never equals a real getLocalDateString() output, so a legacy record
+   * naturally reads as "not today" without any extra branching.
+   */
+  date: string;
   steps: number;
   /**
    * iPhone-source-only steps, alongside the unified total above. null for
@@ -19,7 +28,9 @@ export interface StoredSteps {
  * query params right now" as "no steps ever". Product 04 never reads
  * HealthKit itself; this only ever trusts values the URL already carried at
  * some point. updatedAt is not shown in the UI yet — it's kept only as a
- * foundation for a future staleness check.
+ * foundation for a future staleness check. date is what actually gates
+ * same-day fallback (see useLatestSteps) — updatedAt alone was never
+ * validated against "today" before.
  */
 const STORAGE_KEY = 'product04:latest-steps';
 
@@ -29,9 +40,10 @@ export function loadStoredSteps(): StoredSteps | null {
     if (!raw) return null;
     const parsed: unknown = JSON.parse(raw);
     if (typeof parsed !== 'object' || parsed === null) return null;
-    const { steps, iphoneSteps, updatedAt } = parsed as Partial<StoredSteps>;
+    const { date, steps, iphoneSteps, updatedAt } = parsed as Partial<StoredSteps>;
     if (typeof steps !== 'number' || typeof updatedAt !== 'string') return null;
     return {
+      date: typeof date === 'string' ? date : '',
       steps,
       iphoneSteps: typeof iphoneSteps === 'number' ? iphoneSteps : null,
       updatedAt,
@@ -44,8 +56,9 @@ export function loadStoredSteps(): StoredSteps | null {
 export function saveStoredSteps(
   steps: number,
   iphoneSteps: number | null,
+  date: string,
   updatedAt: string = new Date().toISOString(),
 ): void {
-  const record: StoredSteps = { steps, iphoneSteps, updatedAt };
+  const record: StoredSteps = { date, steps, iphoneSteps, updatedAt };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
 }

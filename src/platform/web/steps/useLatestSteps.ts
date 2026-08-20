@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
-import { resolveCurrentSteps } from '../../../domain/steps/resolveCurrentSteps';
+import { resolveCurrentSteps, resolveTrustedStoredSteps } from '../../../domain/steps/resolveCurrentSteps';
+import { getLocalDateString } from '../../../domain/date/localDate';
 import { useStepsQueryParam } from './useStepsQueryParam';
 import { useIphoneStepsQueryParam } from './useIphoneStepsQueryParam';
 import { loadStoredSteps, saveStoredSteps } from './stepsStorage';
@@ -34,17 +35,21 @@ export function useLatestSteps(reactivationTick: number): LatestSteps {
   useEffect(() => {
     // Same trigger as before iphoneSteps existed: only a genuine ?steps=
     // delivery persists anything. iphoneSteps rides along when this
-    // delivery carries it; when it doesn't (legacy sender), the previously
-    // stored iphoneSteps is kept instead of being overwritten to null, so a
-    // one-off legacy request can't erase a value a newer app build already
-    // delivered.
+    // delivery carries it; when it doesn't (legacy sender, or an iPhone
+    // source HealthKit couldn't confidently resolve yet), the previously
+    // stored iphoneSteps is kept instead of being overwritten to null — but
+    // only when that stored value is from today. A prior day's iphoneSteps
+    // must never be carried forward into today's record just because this
+    // delivery didn't happen to include one (that's exactly how a stale
+    // count used to survive a midnight rollover).
     if (urlSteps === null) return;
-    const previousIphoneSteps = loadStoredSteps()?.iphoneSteps ?? null;
-    saveStoredSteps(urlSteps, urlIphoneSteps ?? previousIphoneSteps);
+    const trustedStored = resolveTrustedStoredSteps(loadStoredSteps(), getLocalDateString());
+    const previousIphoneSteps = trustedStored?.iphoneSteps ?? null;
+    saveStoredSteps(urlSteps, urlIphoneSteps ?? previousIphoneSteps, getLocalDateString());
   }, [urlSteps, urlIphoneSteps]);
 
   return useMemo(() => {
-    const stored = loadStoredSteps();
+    const stored = resolveTrustedStoredSteps(loadStoredSteps(), getLocalDateString());
     return {
       steps: resolveCurrentSteps(urlSteps, stored?.steps ?? null),
       iphoneSteps: resolveCurrentSteps(urlIphoneSteps, stored?.iphoneSteps ?? null),

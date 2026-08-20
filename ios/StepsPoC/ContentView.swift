@@ -49,9 +49,18 @@ struct ContentView: View {
             }
         }
         .onChange(of: scenePhase) { _, newPhase in
-            if newPhase == .active {
-                foregroundTick += 1
-            }
+            guard newPhase == .active else { return }
+            // Two independent signals, not one: foregroundTick tells the
+            // already-loaded page "you're visible again, re-check your own
+            // local state" (see ProductWebView/usePageReactivation.ts) —
+            // it does not know or care whether HealthKit has anything new.
+            // fetchTodaySteps() re-queries HealthKit for *today* so a
+            // foreground that crosses a local-day boundary (app merely
+            // backgrounded, never relaunched) gets today's real total/iphone
+            // instead of leaving productURL — and therefore the URL actually
+            // loaded in the WebView — stuck on whatever day it was built.
+            foregroundTick += 1
+            healthKitManager.fetchTodaySteps()
         }
     }
 
